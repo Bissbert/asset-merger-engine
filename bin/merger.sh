@@ -127,107 +127,105 @@ fi
 
 # Print usage information
 usage() {
-    cat << EOF
-${BOLD}Usage:${NC} ${SCRIPT_NAME} [OPTIONS] COMMAND [ARGUMENTS]
-
-${BOLD}DESCRIPTION:${NC}
-    Orchestrates asset synchronization between Zabbix monitoring and Topdesk ITSM.
-    Integrates multiple components for data retrieval, comparison, and application.
-
-${BOLD}COMMANDS:${NC}
-    ${CYAN}fetch${NC}       Retrieve data from Zabbix and Topdesk
-    ${CYAN}diff${NC}        Compare and identify differences
-    ${CYAN}tui${NC}         Interactive TUI for field selection
-    ${CYAN}apply${NC}       Apply selected changes to Topdesk
-    ${CYAN}sync${NC}        Full workflow (fetch -> diff -> tui -> apply)
-    ${CYAN}validate${NC}    Validate configuration and connectivity
-    ${CYAN}health${NC}      Comprehensive health check of all components
-    ${CYAN}status${NC}      Show current process status
-    ${CYAN}clean${NC}       Clean temporary and cache files
-
-${BOLD}OPTIONS:${NC}
-    -c, --config FILE    Configuration file (default: ${DEFAULT_CONFIG_FILE})
-    -o, --output DIR     Output directory (default: ${OUTPUT_DIR})
-    -l, --log FILE       Log file (default: ${LOG_FILE})
-    -v, --verbose        Enable verbose output
-    -d, --debug          Enable debug mode
-    -n, --dry-run        Perform dry run without changes
-    -f, --force          Force operation without confirmation
-    -i, --interactive    Interactive mode (default: on)
-    -b, --batch          Batch mode (non-interactive)
-    -h, --help           Show this help message
-    -V, --version        Show version information
-
-${BOLD}WORKFLOW COMMANDS:${NC}
-    ${CYAN}fetch${NC} [OPTIONS]
-        --group GROUP       Filter by Zabbix group
-        --tag TAG          Filter by tag
-        --limit N          Limit number of assets
-        --cache            Use cached data if available
-
-    ${CYAN}diff${NC} [OPTIONS]
-        --fields FIELDS    Comma-separated fields to compare
-        --format FORMAT    Output format (json|csv|html)
-        --threshold N      Similarity threshold (0-100)
-
-    ${CYAN}tui${NC} [OPTIONS]
-        --mode MODE        TUI mode (dialog|whiptail|pure)
-        --auto-select      Auto-select all Zabbix values
-
-    ${CYAN}apply${NC} [OPTIONS]
-        --queue FILE       Apply from queue file
-        --batch-size N     Batch size for updates
-        --confirm          Require confirmation
-
-    ${CYAN}sync${NC} [OPTIONS]
-        --auto             Full automatic mode
-        --profile PROFILE  Use predefined profile
-
-${BOLD}EXAMPLES:${NC}
-    # Validate system configuration
-    ${SCRIPT_NAME} validate
-
-    # Full interactive synchronization
-    ${SCRIPT_NAME} sync
-
-    # Fetch with filters
-    ${SCRIPT_NAME} fetch --group "Linux servers" --tag "production"
-
-    # Non-interactive batch sync
-    ${SCRIPT_NAME} -b sync --auto
-
-    # Dry-run to preview changes
-    ${SCRIPT_NAME} -n sync
-
-${BOLD}FILES:${NC}
-    Configuration: ${ETC_DIR}/merger.conf
-    Logs:         ${DEFAULT_LOG_DIR}/
-    Cache:        ${DEFAULT_CACHE_DIR}/
-    Output:       ${OUTPUT_DIR}/
-
-${BOLD}COMPONENTS:${NC}
-    - datafetcher: Retrieves data from Zabbix/Topdesk
-    - validator:   Validates data and configuration
-    - sorter:      Compares and sorts differences
-    - tui:         Interactive field selection
-    - applier:     Applies changes to Topdesk
-    - logger:      Centralized logging system
-
-${BOLD}EXIT STATUS:${NC}
-    0  Success
-    1  General error
-    2  Configuration error
-    3  Connection error
-    4  Data error
-    5  Component error
-
-${BOLD}VERSION:${NC}
-    ${SCRIPT_NAME} version ${SCRIPT_VERSION}
-
-${BOLD}DOCUMENTATION:${NC}
-    See ${PROJECT_ROOT}/README.md for detailed documentation
-
-EOF
+    printf "%bUsage:%b %s [OPTIONS] COMMAND [ARGUMENTS]\n" "${BOLD}" "${NC}" "${SCRIPT_NAME}"
+    printf "\n"
+    printf "%bDESCRIPTION:%b\n" "${BOLD}" "${NC}"
+    printf "    Orchestrates asset synchronization between Zabbix monitoring and Topdesk ITSM.\n"
+    printf "    Integrates multiple components for data retrieval, comparison, and application.\n"
+    printf "\n"
+    printf "%bCOMMANDS:%b\n" "${BOLD}" "${NC}"
+    printf "    %bfetch%b       Retrieve data from Zabbix and Topdesk\n" "${CYAN}" "${NC}"
+    printf "    %bdiff%b        Compare and identify differences\n" "${CYAN}" "${NC}"
+    printf "    %btui%b         Interactive TUI for field selection\n" "${CYAN}" "${NC}"
+    printf "    %bapply%b       Apply selected changes to Topdesk\n" "${CYAN}" "${NC}"
+    printf "    %bsync%b        Full workflow (fetch -> diff -> tui -> apply)\n" "${CYAN}" "${NC}"
+    printf "    %bvalidate%b    Validate configuration and connectivity\n" "${CYAN}" "${NC}"
+    printf "    %bhealth%b      Comprehensive health check of all components\n" "${CYAN}" "${NC}"
+    printf "    %bstatus%b      Show current process status\n" "${CYAN}" "${NC}"
+    printf "    %bclean%b       Clean temporary and cache files\n" "${CYAN}" "${NC}"
+    printf "\n"
+    printf "%bOPTIONS:%b\n" "${BOLD}" "${NC}"
+    printf "    -c, --config FILE    Configuration file (default: %s)\n" "${DEFAULT_CONFIG_FILE}"
+    printf "    -o, --output DIR     Output directory (default: %s)\n" "${OUTPUT_DIR}"
+    printf "    -l, --log FILE       Log file (default: %s)\n" "${LOG_FILE}"
+    printf "    -v, --verbose        Enable verbose output\n"
+    printf "    -d, --debug          Enable debug mode\n"
+    printf "    -n, --dry-run        Perform dry run without changes\n"
+    printf "    -f, --force          Force operation without confirmation\n"
+    printf "    -i, --interactive    Interactive mode (default: on)\n"
+    printf "    -b, --batch          Batch mode (non-interactive)\n"
+    printf "    -h, --help           Show this help message\n"
+    printf "    -V, --version        Show version information\n"
+    printf "\n"
+    printf "%bWORKFLOW COMMANDS:%b\n" "${BOLD}" "${NC}"
+    printf "    %bfetch%b [OPTIONS]\n" "${CYAN}" "${NC}"
+    printf "        --group GROUP       Filter by Zabbix group\n"
+    printf "        --tag TAG          Filter by tag\n"
+    printf "        --limit N          Limit number of assets\n"
+    printf "        --cache            Use cached data if available\n"
+    printf "\n"
+    printf "    %bdiff%b [OPTIONS]\n" "${CYAN}" "${NC}"
+    printf "        --fields FIELDS    Comma-separated fields to compare\n"
+    printf "        --format FORMAT    Output format (json|csv|html)\n"
+    printf "        --threshold N      Similarity threshold (0-100)\n"
+    printf "\n"
+    printf "    %btui%b [OPTIONS]\n" "${CYAN}" "${NC}"
+    printf "        --mode MODE        TUI mode (dialog|whiptail|pure)\n"
+    printf "        --auto-select      Auto-select all Zabbix values\n"
+    printf "\n"
+    printf "    %bapply%b [OPTIONS]\n" "${CYAN}" "${NC}"
+    printf "        --queue FILE       Apply from queue file\n"
+    printf "        --batch-size N     Batch size for updates\n"
+    printf "        --confirm          Require confirmation\n"
+    printf "\n"
+    printf "    %bsync%b [OPTIONS]\n" "${CYAN}" "${NC}"
+    printf "        --auto             Full automatic mode\n"
+    printf "        --profile PROFILE  Use predefined profile\n"
+    printf "\n"
+    printf "%bEXAMPLES:%b\n" "${BOLD}" "${NC}"
+    printf "    # Validate system configuration\n"
+    printf "    %s validate\n" "${SCRIPT_NAME}"
+    printf "\n"
+    printf "    # Full interactive synchronization\n"
+    printf "    %s sync\n" "${SCRIPT_NAME}"
+    printf "\n"
+    printf "    # Fetch with filters\n"
+    printf "    %s fetch --group \"Linux servers\" --tag \"production\"\n" "${SCRIPT_NAME}"
+    printf "\n"
+    printf "    # Non-interactive batch sync\n"
+    printf "    %s -b sync --auto\n" "${SCRIPT_NAME}"
+    printf "\n"
+    printf "    # Dry-run to preview changes\n"
+    printf "    %s -n sync\n" "${SCRIPT_NAME}"
+    printf "\n"
+    printf "%bFILES:%b\n" "${BOLD}" "${NC}"
+    printf "    Configuration: %s/merger.conf\n" "${ETC_DIR}"
+    printf "    Logs:         %s/\n" "${DEFAULT_LOG_DIR}"
+    printf "    Cache:        %s/\n" "${DEFAULT_CACHE_DIR}"
+    printf "    Output:       %s/\n" "${OUTPUT_DIR}"
+    printf "\n"
+    printf "%bCOMPONENTS:%b\n" "${BOLD}" "${NC}"
+    printf "    - datafetcher: Retrieves data from Zabbix/Topdesk\n"
+    printf "    - validator:   Validates data and configuration\n"
+    printf "    - sorter:      Compares and sorts differences\n"
+    printf "    - tui:         Interactive field selection\n"
+    printf "    - applier:     Applies changes to Topdesk\n"
+    printf "    - logger:      Centralized logging system\n"
+    printf "\n"
+    printf "%bEXIT STATUS:%b\n" "${BOLD}" "${NC}"
+    printf "    0  Success\n"
+    printf "    1  General error\n"
+    printf "    2  Configuration error\n"
+    printf "    3  Connection error\n"
+    printf "    4  Data error\n"
+    printf "    5  Component error\n"
+    printf "\n"
+    printf "%bVERSION:%b\n" "${BOLD}" "${NC}"
+    printf "    %s version %s\n" "${SCRIPT_NAME}" "${SCRIPT_VERSION}"
+    printf "\n"
+    printf "%bDOCUMENTATION:%b\n" "${BOLD}" "${NC}"
+    printf "    See %s/README.md for detailed documentation\n" "${PROJECT_ROOT}"
+    printf "\n"
 }
 
 # Print version
