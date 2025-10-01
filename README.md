@@ -27,8 +27,8 @@ A **POSIX-compliant toolkit** for synchronizing asset data between [Zabbix](http
 
 * **POSIX shell** (sh, bash, dash)
 * **Python 3** (3.8+)
-* **zbx** — Zabbix CLI toolkit (see [zbx-cli](../zbx-cli/))
-* **topdesk** — Topdesk CLI toolkit (see [topdesk-cli](../topdesk-cli/))
+* **zbx** — Zabbix CLI toolkit (see [zbx-cli](https://github.com/Bissbert/zbx-cli))
+* **topdesk** — Topdesk CLI toolkit (see [topdesk-cli](https://github.com/Bissbert/topdesk-cli))
 * Optional: **dialog** or **whiptail** for enhanced TUI experience
 * Optional: **jq** for advanced JSON processing
 
