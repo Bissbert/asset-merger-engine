@@ -32,7 +32,9 @@ help:
 	@echo "=================================="
 	@echo ""
 	@echo "Targets:"
-	@echo "  install       Install the merger tool"
+	@echo "  install       Install the merger tool (requires root)"
+	@echo "  user-install  Install for current user only (no root needed)"
+	@echo "  dev-install   Install development symlink (no root needed)"
 	@echo "  uninstall     Remove the merger tool"
 	@echo "  test          Run tests"
 	@echo "  check         Check dependencies"
@@ -45,9 +47,10 @@ help:
 	@echo "  INSTALL_GROUP Installation group (default: root)"
 	@echo ""
 	@echo "Examples:"
-	@echo "  make install"
-	@echo "  make install PREFIX=/opt/merger"
-	@echo "  make check"
+	@echo "  make user-install  # Install for current user"
+	@echo "  make dev-install   # Development installation"
+	@echo "  sudo make install  # System-wide installation"
+	@echo "  make check         # Check dependencies"
 
 # Check dependencies
 .PHONY: check
@@ -127,6 +130,69 @@ uninstall:
 
 	@echo "Uninstallation complete!"
 
+# User installation (no root required)
+.PHONY: user-install
+user-install: check
+	@echo "Installing asset-merger-engine for current user..."
+
+	# Create user directories
+	@mkdir -p $$HOME/.local/bin
+	@mkdir -p $$HOME/.local/lib/asset-merger-engine
+	@mkdir -p $$HOME/.config/asset-merger-engine
+	@mkdir -p $$HOME/.local/share/asset-merger-engine/cache
+	@mkdir -p $$HOME/.local/share/asset-merger-engine/output/processed
+	@mkdir -p $$HOME/.local/share/asset-merger-engine/output/failed
+	@mkdir -p $$HOME/.local/share/asset-merger-engine/output/reports
+	@mkdir -p $$HOME/.local/share/asset-merger-engine/tmp
+	@mkdir -p $$HOME/.local/share/asset-merger-engine/logs
+
+	# Install scripts
+	$(INSTALL) -m 755 bin/merger.sh $$HOME/.local/bin/asset-merger-engine
+
+	# Install libraries
+	$(INSTALL) -m 644 lib/common.sh $$HOME/.local/lib/asset-merger-engine/
+	$(INSTALL) -m 644 lib/zabbix.sh $$HOME/.local/lib/asset-merger-engine/
+	$(INSTALL) -m 644 lib/topdesk.sh $$HOME/.local/lib/asset-merger-engine/
+
+	# Install configuration
+	@if [ ! -f $$HOME/.config/asset-merger-engine/merger.conf ]; then \
+		$(INSTALL) -m 640 etc/merger.conf.sample $$HOME/.config/asset-merger-engine/merger.conf; \
+		echo "Installed sample configuration to $$HOME/.config/asset-merger-engine/merger.conf"; \
+	else \
+		echo "Configuration file already exists, skipping"; \
+	fi
+
+	@echo "User installation complete!"
+	@echo ""
+	@echo "Make sure $$HOME/.local/bin is in your PATH:"
+	@echo '  export PATH="$$HOME/.local/bin:$$PATH"'
+	@echo ""
+	@echo "Next steps:"
+	@echo "1. Edit configuration: $$HOME/.config/asset-merger-engine/merger.conf"
+	@echo "2. Test connection: asset-merger-engine validate"
+	@echo "3. Run synchronization: asset-merger-engine sync"
+
+# User uninstall
+.PHONY: user-uninstall
+user-uninstall:
+	@echo "Uninstalling asset-merger-engine for current user..."
+
+	# Remove binaries
+	@rm -f $$HOME/.local/bin/asset-merger-engine
+
+	# Remove libraries
+	@rm -rf $$HOME/.local/lib/asset-merger-engine
+
+	@echo ""
+	@echo "WARNING: Configuration and data directories will be preserved:"
+	@echo "  - $$HOME/.config/asset-merger-engine"
+	@echo "  - $$HOME/.local/share/asset-merger-engine"
+	@echo ""
+	@echo "To completely remove, run:"
+	@echo "  rm -rf $$HOME/.config/asset-merger-engine $$HOME/.local/share/asset-merger-engine"
+
+	@echo "User uninstallation complete!"
+
 # Run tests
 .PHONY: test
 test:
@@ -147,13 +213,21 @@ clean:
 .PHONY: dev-install
 dev-install:
 	@echo "Setting up development environment..."
-	@ln -sf $$(pwd)/bin/merger.sh /usr/local/bin/asset-merger-engine-dev
+	@# Create user bin directory if it doesn't exist
+	@mkdir -p $$HOME/.local/bin
+	@# Create symlink in user's local bin
+	@ln -sf $$(pwd)/bin/merger.sh $$HOME/.local/bin/asset-merger-engine-dev
 	@echo "Development installation complete!"
+	@echo ""
+	@echo "Make sure $$HOME/.local/bin is in your PATH:"
+	@echo '  export PATH="$$HOME/.local/bin:$$PATH"'
+	@echo ""
+	@echo "Run with: asset-merger-engine-dev"
 
 .PHONY: dev-uninstall
 dev-uninstall:
 	@echo "Removing development environment..."
-	@rm -f /usr/local/bin/asset-merger-engine-dev
+	@rm -f $$HOME/.local/bin/asset-merger-engine-dev
 	@echo "Development uninstallation complete!"
 
 .DEFAULT:
