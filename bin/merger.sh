@@ -34,15 +34,33 @@ fi
 readonly LIB_DIR="${PROJECT_ROOT}/lib"
 readonly BIN_DIR="${PROJECT_ROOT}/bin"
 readonly ETC_DIR="${PROJECT_ROOT}/etc"
-readonly VAR_DIR="${PROJECT_ROOT}/var"
-readonly OUTPUT_DIR="${PROJECT_ROOT}/output"
-readonly TMP_DIR="${PROJECT_ROOT}/tmp"
 
-# Default configuration
-readonly DEFAULT_CONFIG_FILE="${ETC_DIR}/merger.conf"
-readonly DEFAULT_LOG_DIR="${VAR_DIR}/log"
-readonly DEFAULT_CACHE_DIR="${VAR_DIR}/cache"
-readonly DEFAULT_RUN_DIR="${VAR_DIR}/run"
+# Determine runtime directories based on installation type
+# Check if this is a system-wide installation
+if [ "${LIB_DIR}" = "/usr/local/lib/asset-merger-engine" ] || \
+   [ "${LIB_DIR}" = "/usr/lib/asset-merger-engine" ] || \
+   [ "${LIB_DIR}" = "/opt/asset-merger-engine/lib" ] || \
+   [ -n "${SYSTEM_INSTALL:-}" ]; then
+    # System-wide installation - use user-specific directories following XDG spec
+    readonly VAR_DIR="${HOME}/.local/share/asset-merger-engine"
+    readonly OUTPUT_DIR="${HOME}/.local/share/asset-merger-engine/output"
+    readonly TMP_DIR="${HOME}/.cache/asset-merger-engine/tmp"
+    readonly DEFAULT_CONFIG_FILE="${HOME}/.config/asset-merger-engine/merger.conf"
+    readonly DEFAULT_LOG_DIR="${HOME}/.local/state/asset-merger-engine/logs"
+    readonly DEFAULT_CACHE_DIR="${HOME}/.cache/asset-merger-engine"
+    readonly DEFAULT_RUN_DIR="${HOME}/.local/state/asset-merger-engine/run"
+    readonly SYSTEM_CONFIG_TEMPLATE="${ETC_DIR}/merger.conf"
+else
+    # User installation or development mode - use configured paths
+    readonly VAR_DIR="${PROJECT_ROOT}/var"
+    readonly OUTPUT_DIR="${PROJECT_ROOT}/output"
+    readonly TMP_DIR="${PROJECT_ROOT}/tmp"
+    readonly DEFAULT_CONFIG_FILE="${ETC_DIR}/merger.conf"
+    readonly DEFAULT_LOG_DIR="${VAR_DIR}/log"
+    readonly DEFAULT_CACHE_DIR="${VAR_DIR}/cache"
+    readonly DEFAULT_RUN_DIR="${VAR_DIR}/run"
+    readonly SYSTEM_CONFIG_TEMPLATE=""
+fi
 
 # Component modules
 readonly DATAFETCHER_MODULE="${LIB_DIR}/datafetcher.sh"
@@ -222,6 +240,30 @@ version() {
 
 # Initialize environment
 init_environment() {
+    # For system-wide installations, create user config from template if needed
+    if [ -n "${SYSTEM_CONFIG_TEMPLATE}" ] && [ -f "${SYSTEM_CONFIG_TEMPLATE}" ]; then
+        if [ ! -f "${DEFAULT_CONFIG_FILE}" ]; then
+            # Create config directory if it doesn't exist
+            local config_dir="$(dirname "${DEFAULT_CONFIG_FILE}")"
+            if [ ! -d "${config_dir}" ]; then
+                mkdir -p "${config_dir}" 2>/dev/null || {
+                    echo "Error: Failed to create config directory: ${config_dir}" >&2
+                    return 1
+                }
+            fi
+
+            # Copy template to user config
+            cp "${SYSTEM_CONFIG_TEMPLATE}" "${DEFAULT_CONFIG_FILE}" 2>/dev/null || {
+                echo "Error: Failed to create user config from template" >&2
+                echo "Please manually copy ${SYSTEM_CONFIG_TEMPLATE} to ${DEFAULT_CONFIG_FILE}" >&2
+                return 1
+            }
+            chmod 600 "${DEFAULT_CONFIG_FILE}" 2>/dev/null || true
+            echo "Created user configuration file: ${DEFAULT_CONFIG_FILE}"
+            echo "Please edit it with your settings before running sync operations"
+        fi
+    fi
+
     # Create log directory first if needed
     if [ ! -d "${DEFAULT_LOG_DIR}" ]; then
         mkdir -p "${DEFAULT_LOG_DIR}" 2>/dev/null || {
@@ -232,10 +274,11 @@ init_environment() {
 
     log_info "Initializing environment..."
 
-    # Create required directories
+    # Create required directories (including XDG directories for system installs)
     for dir in "${DEFAULT_LOG_DIR}" "${DEFAULT_CACHE_DIR}" "${DEFAULT_RUN_DIR}" \
                "${OUTPUT_DIR}" "${TMP_DIR}" "${OUTPUT_DIR}/differences" \
-               "${OUTPUT_DIR}/apply" "${OUTPUT_DIR}/reports"; do
+               "${OUTPUT_DIR}/apply" "${OUTPUT_DIR}/reports" "${OUTPUT_DIR}/processed" \
+               "${OUTPUT_DIR}/failed"; do
         if [ ! -d "${dir}" ]; then
             mkdir -p "${dir}" 2>/dev/null || {
                 log_error "Failed to create directory: ${dir}"

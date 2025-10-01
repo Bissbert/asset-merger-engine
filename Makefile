@@ -86,19 +86,15 @@ install: check
 	# Install VERSION file
 	$(INSTALL) -m 644 VERSION $(LIBDIR)/VERSION
 
-	# Install main script with path substitution
+	# Install main script with path substitution for library locations only
+	# Runtime paths will be determined dynamically based on user
 	@sed -e 's|^readonly SCRIPT_VERSION=.*|readonly SCRIPT_VERSION="$(shell cat VERSION)"|' \
 	     -e 's|^readonly PROJECT_ROOT=.*|readonly PROJECT_ROOT="$(PREFIX)"|' \
 	     -e 's|^readonly LIB_DIR=.*|readonly LIB_DIR="$(LIBDIR)"|' \
 	     -e 's|^readonly BIN_DIR=.*|readonly BIN_DIR="$(BINDIR)"|' \
 	     -e 's|^readonly ETC_DIR=.*|readonly ETC_DIR="$(ETCDIR)"|' \
-	     -e 's|^readonly VAR_DIR=.*|readonly VAR_DIR="$(VARDIR)"|' \
-	     -e 's|^readonly OUTPUT_DIR=.*|readonly OUTPUT_DIR="$(VARDIR)/output"|' \
-	     -e 's|^readonly TMP_DIR=.*|readonly TMP_DIR="$(VARDIR)/tmp"|' \
-	     -e 's|^readonly DEFAULT_CONFIG_FILE=.*|readonly DEFAULT_CONFIG_FILE="$(ETCDIR)/merger.conf"|' \
-	     -e 's|^readonly DEFAULT_LOG_DIR=.*|readonly DEFAULT_LOG_DIR="$(LOGDIR)"|' \
-	     -e 's|^readonly DEFAULT_CACHE_DIR=.*|readonly DEFAULT_CACHE_DIR="$(VARDIR)/cache"|' \
-	     -e 's|^readonly DEFAULT_RUN_DIR=.*|readonly DEFAULT_RUN_DIR="$(VARDIR)/run"|' \
+	     -e '/^readonly SYSTEM_INSTALL=/d' \
+	     -e 's|^if \[ -f.*VERSION.*\]; then|SYSTEM_INSTALL=1\nif [ -f "${SCRIPT_DIR}/../VERSION" ]; then|' \
 	     bin/merger.sh > $(BINDIR)/asset-merger-engine
 	$(CHMOD) 755 $(BINDIR)/asset-merger-engine
 
@@ -192,18 +188,12 @@ user-install: check
 	$(INSTALL) -m 644 VERSION $$HOME/.local/lib/asset-merger-engine/VERSION
 
 	# Install main script with path substitution
+	# For user installation, the runtime detection logic will use the else branch
 	@sed -e 's|^readonly SCRIPT_VERSION=.*|readonly SCRIPT_VERSION="$(shell cat VERSION)"|' \
 	     -e 's|^readonly PROJECT_ROOT=.*|readonly PROJECT_ROOT="'"$$HOME"'/.local"|' \
 	     -e 's|^readonly LIB_DIR=.*|readonly LIB_DIR="'"$$HOME"'/.local/lib/asset-merger-engine"|' \
 	     -e 's|^readonly BIN_DIR=.*|readonly BIN_DIR="'"$$HOME"'/.local/bin"|' \
 	     -e 's|^readonly ETC_DIR=.*|readonly ETC_DIR="'"$$HOME"'/.config/asset-merger-engine"|' \
-	     -e 's|^readonly VAR_DIR=.*|readonly VAR_DIR="'"$$HOME"'/.local/share/asset-merger-engine"|' \
-	     -e 's|^readonly OUTPUT_DIR=.*|readonly OUTPUT_DIR="'"$$HOME"'/.local/share/asset-merger-engine/output"|' \
-	     -e 's|^readonly TMP_DIR=.*|readonly TMP_DIR="'"$$HOME"'/.local/share/asset-merger-engine/tmp"|' \
-	     -e 's|^readonly DEFAULT_CONFIG_FILE=.*|readonly DEFAULT_CONFIG_FILE="'"$$HOME"'/.config/asset-merger-engine/merger.conf"|' \
-	     -e 's|^readonly DEFAULT_LOG_DIR=.*|readonly DEFAULT_LOG_DIR="'"$$HOME"'/.local/share/asset-merger-engine/logs"|' \
-	     -e 's|^readonly DEFAULT_CACHE_DIR=.*|readonly DEFAULT_CACHE_DIR="'"$$HOME"'/.local/share/asset-merger-engine/cache"|' \
-	     -e 's|^readonly DEFAULT_RUN_DIR=.*|readonly DEFAULT_RUN_DIR="'"$$HOME"'/.local/share/asset-merger-engine/run"|' \
 	     bin/merger.sh > $$HOME/.local/bin/asset-merger-engine
 	@chmod 755 $$HOME/.local/bin/asset-merger-engine
 
