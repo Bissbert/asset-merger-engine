@@ -64,7 +64,7 @@ def test_cli_availability():
     print("CHECKING CLI AVAILABILITY")
     print("="*60)
 
-    cli_commands = ['topdesk-cli', 'topdesk']
+    cli_commands = ['topdesk']
     found_cli = None
 
     for cmd in cli_commands:
@@ -82,8 +82,8 @@ def test_cli_availability():
             continue
 
     if not found_cli:
-        print("❌ topdesk-cli not found")
-        print("   Install with: pip install topdesk-cli")
+        print("❌ topdesk command not found")
+        print("   Please ensure 'topdesk' command is installed and in PATH")
         print("   Or use direct API calls (requests library required)")
 
     return found_cli

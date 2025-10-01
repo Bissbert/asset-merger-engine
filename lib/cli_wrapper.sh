@@ -15,22 +15,16 @@ detect_cli_tools() {
     local td_found=0
 
     # Check for Zabbix CLI
-    for cmd in zbx-cli zbx zabbix-cli; do
-        if command -v "$cmd" >/dev/null 2>&1; then
-            export ZBX_CLI_COMMAND="$cmd"
-            zbx_found=1
-            break
-        fi
-    done
+    if command -v "zbx" >/dev/null 2>&1; then
+        export ZBX_CLI_COMMAND="zbx"
+        zbx_found=1
+    fi
 
     # Check for Topdesk CLI
-    for cmd in topdesk-cli topdesk td-cli; do
-        if command -v "$cmd" >/dev/null 2>&1; then
-            export TOPDESK_CLI_COMMAND="$cmd"
-            td_found=1
-            break
-        fi
-    done
+    if command -v "topdesk" >/dev/null 2>&1; then
+        export TOPDESK_CLI_COMMAND="topdesk"
+        td_found=1
+    fi
 
     if [ "$MOCK_MODE" = "auto" ]; then
         if [ $zbx_found -eq 0 ] || [ $td_found -eq 0 ]; then
@@ -50,7 +44,7 @@ zbx_execute_wrapper() {
         log_debug "Mock mode: zbx command: $command"
         generate_mock_zbx_data "$command"
     else
-        local zbx_cmd="${ZBX_CLI_COMMAND:-zbx-cli}"
+        local zbx_cmd="${ZBX_CLI_COMMAND:-zbx}"
         if ! command -v "$zbx_cmd" >/dev/null 2>&1; then
             log_error "Zabbix CLI not found and mock mode disabled"
             return 1
@@ -70,7 +64,7 @@ td_execute_wrapper() {
         log_debug "Mock mode: topdesk command: $command"
         generate_mock_td_data "$command"
     else
-        local td_cmd="${TOPDESK_CLI_COMMAND:-topdesk-cli}"
+        local td_cmd="${TOPDESK_CLI_COMMAND:-topdesk}"
         if ! command -v "$td_cmd" >/dev/null 2>&1; then
             log_error "Topdesk CLI not found and mock mode disabled"
             return 1

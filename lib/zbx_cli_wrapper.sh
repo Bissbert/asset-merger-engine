@@ -10,7 +10,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ZBX_TIMEOUT="${ZBX_TIMEOUT:-30}"
 ZBX_OUTPUT_FORMAT="${ZBX_OUTPUT_FORMAT:-json}"
 
-# Execute zbx-cli command with proper authentication
+# Execute zbx command with proper authentication
 zbx_execute() {
     local command="$1"
     shift
@@ -23,7 +23,7 @@ zbx_execute() {
     fi
 
     # Get the detected command name
-    local zbx_cmd="${ZBX_CLI_COMMAND:-zbx-cli}"
+    local zbx_cmd="${ZBX_CLI_COMMAND:-zbx}"
 
     # Build command
     local full_cmd="$zbx_cmd"

@@ -212,8 +212,8 @@ EOF
     # Override commands temporarily
     OLD_PATH="${PATH}"
     export PATH="${CACHE_DIR}:${PATH}"
-    alias zbx-cli="${CACHE_DIR}/mock_zbx_cli"
-    alias topdesk-cli="${CACHE_DIR}/mock_topdesk_cli"
+    alias zbx="${CACHE_DIR}/mock_zbx_cli"
+    alias topdesk="${CACHE_DIR}/mock_topdesk_cli"
 
     # Test fetch (this will still fail without proper mock setup, but tests the flow)
     local result=$(fetch_all_assets "TestGroup" "" 2>/dev/null || echo '{"error": "expected"}')
@@ -226,8 +226,8 @@ EOF
 
     # Cleanup
     export PATH="${OLD_PATH}"
-    unalias zbx-cli 2>/dev/null
-    unalias topdesk-cli 2>/dev/null
+    unalias zbx 2>/dev/null
+    unalias topdesk 2>/dev/null
     rm -f "${CACHE_DIR}/mock_zbx_cli" "${CACHE_DIR}/mock_topdesk_cli"
 }
 

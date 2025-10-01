@@ -55,8 +55,8 @@ check:
 	@echo "Checking dependencies..."
 	@command -v sh >/dev/null 2>&1 || { echo "Error: sh not found"; exit 1; }
 	@command -v jq >/dev/null 2>&1 || { echo "Warning: jq not found"; }
-	@command -v zbx-cli >/dev/null 2>&1 || { echo "Warning: zbx-cli not found"; }
-	@command -v topdesk-cli >/dev/null 2>&1 || { echo "Warning: topdesk-cli not found"; }
+	@command -v zbx >/dev/null 2>&1 || { echo "Warning: zbx not found"; }
+	@command -v topdesk >/dev/null 2>&1 || { echo "Warning: topdesk not found"; }
 	@echo "Dependency check complete"
 
 # Install the tool

@@ -28,53 +28,40 @@ check_zbx_cli() {
     echo "\nChecking for Zabbix CLI..."
     local found=0
 
-    for cmd in zbx-cli zbx zabbix-cli; do
-        if command -v "$cmd" >/dev/null 2>&1; then
-            echo "${GREEN}✓${NC} Found Zabbix CLI: $cmd ($(command -v $cmd))"
+    if command -v "zbx" >/dev/null 2>&1; then
+        echo "${GREEN}✓${NC} Found Zabbix CLI: zbx ($(command -v zbx))"
 
-            # Try to get version
-            if $cmd --version 2>/dev/null; then
-                echo "  Version: $($cmd --version 2>/dev/null | head -1)"
-            fi
-
-            # Check for config file
-            local config_paths="
-                ${HOME}/.config/zbx-cli/config.ini
-                ${HOME}/.zbx-cli.conf
-                ${HOME}/.zabbix-cli.conf
-                /etc/zbx-cli/config.ini
-            "
-
-            echo "  Checking for config files:"
-            for config in $config_paths; do
-                if [ -f "$config" ]; then
-                    echo "    ${GREEN}✓${NC} $config"
-                fi
-            done
-
-            found=1
-            export ZBX_CLI_COMMAND="$cmd"
-            break
+        # Try to get version
+        if zbx --version 2>/dev/null; then
+            echo "  Version: $(zbx --version 2>/dev/null | head -1)"
         fi
-    done
+
+        # Check for config file
+        local config_paths="
+            ${HOME}/.config/zbx/config.ini
+            ${HOME}/.zbx.conf
+            ${HOME}/.config/zbx-cli/config.ini
+            /etc/zbx/config.ini
+        "
+
+        echo "  Checking for config files:"
+        for config in $config_paths; do
+            if [ -f "$config" ]; then
+                echo "    ${GREEN}✓${NC} $config"
+            fi
+        done
+
+        found=1
+        export ZBX_CLI_COMMAND="zbx"
+    fi
 
     if [ $found -eq 0 ]; then
         echo "${RED}✗${NC} Zabbix CLI not found"
         echo ""
-        echo "  ${YELLOW}Installation options:${NC}"
-        echo "  1. Using pip (recommended):"
-        echo "     pip install zbx-cli"
+        echo "  ${YELLOW}Installation:${NC}"
+        echo "  Please ensure the 'zbx' command is installed and available in your PATH"
         echo ""
-        echo "  2. From source:"
-        echo "     git clone https://github.com/unioslo/zabbix-cli.git"
-        echo "     cd zabbix-cli"
-        echo "     pip install ."
-        echo ""
-        echo "  3. Using package manager (if available):"
-        echo "     apt-get install zabbix-cli  # Debian/Ubuntu"
-        echo "     yum install zabbix-cli      # RHEL/CentOS"
-        echo ""
-        echo "  Documentation: https://github.com/unioslo/zabbix-cli"
+        echo "  Check with your system administrator or consult the Zabbix CLI documentation"
     fi
 
     return $((1 - found))
@@ -85,35 +72,32 @@ check_topdesk_cli() {
     echo "\nChecking for Topdesk CLI..."
     local found=0
 
-    for cmd in topdesk-cli topdesk td-cli; do
-        if command -v "$cmd" >/dev/null 2>&1; then
-            echo "${GREEN}✓${NC} Found Topdesk CLI: $cmd ($(command -v $cmd))"
+    if command -v "topdesk" >/dev/null 2>&1; then
+        echo "${GREEN}✓${NC} Found Topdesk CLI: topdesk ($(command -v topdesk))"
 
-            # Try to get version
-            if $cmd --version 2>/dev/null; then
-                echo "  Version: $($cmd --version 2>/dev/null | head -1)"
-            fi
-
-            # Check for config file
-            local config_paths="
-                ${HOME}/.config/topdesk-cli/config.ini
-                ${HOME}/.topdesk-cli.conf
-                ${HOME}/.topdesk.conf
-                /etc/topdesk-cli/config.ini
-            "
-
-            echo "  Checking for config files:"
-            for config in $config_paths; do
-                if [ -f "$config" ]; then
-                    echo "    ${GREEN}✓${NC} $config"
-                fi
-            done
-
-            found=1
-            export TOPDESK_CLI_COMMAND="$cmd"
-            break
+        # Try to get version
+        if topdesk --version 2>/dev/null; then
+            echo "  Version: $(topdesk --version 2>/dev/null | head -1)"
         fi
-    done
+
+        # Check for config file
+        local config_paths="
+            ${HOME}/.config/topdesk/config.ini
+            ${HOME}/.topdesk.conf
+            ${HOME}/.config/topdesk-cli/config.ini
+            /etc/topdesk/config.ini
+        "
+
+        echo "  Checking for config files:"
+        for config in $config_paths; do
+            if [ -f "$config" ]; then
+                echo "    ${GREEN}✓${NC} $config"
+            fi
+        done
+
+        found=1
+        export TOPDESK_CLI_COMMAND="topdesk"
+    fi
 
     if [ $found -eq 0 ]; then
         echo "${RED}✗${NC} Topdesk CLI not found"
@@ -161,7 +145,7 @@ check_python() {
 
 # Test Zabbix connection
 test_zbx_connection() {
-    local zbx_cmd="${ZBX_CLI_COMMAND:-zbx-cli}"
+    local zbx_cmd="${ZBX_CLI_COMMAND:-zbx}"
 
     echo "\nTesting Zabbix CLI connection..."
 
@@ -190,7 +174,7 @@ test_zbx_connection() {
 
 # Test Topdesk connection
 test_topdesk_connection() {
-    local td_cmd="${TOPDESK_CLI_COMMAND:-topdesk-cli}"
+    local td_cmd="${TOPDESK_CLI_COMMAND:-topdesk}"
 
     echo "\nTesting Topdesk CLI connection..."
 

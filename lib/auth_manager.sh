@@ -17,12 +17,10 @@ init_auth_dir() {
 
 # Detect available Zabbix CLI command
 detect_zbx_command() {
-    for cmd in zbx-cli zbx zabbix-cli; do
-        if command -v "$cmd" >/dev/null 2>&1; then
-            echo "$cmd"
-            return 0
-        fi
-    done
+    if command -v "zbx" >/dev/null 2>&1; then
+        echo "zbx"
+        return 0
+    fi
     return 1
 }
 
@@ -37,8 +35,8 @@ authenticate_zabbix() {
     # Detect zbx command
     local zbx_cmd="$(detect_zbx_command)"
     if [ -z "$zbx_cmd" ]; then
-        log_error "No Zabbix CLI command found (tried: zbx-cli, zbx, zabbix-cli)"
-        log_error "Install with: pip install zbx-cli"
+        log_error "No Zabbix CLI command found (zbx)"
+        log_error "Please ensure 'zbx' command is installed and in PATH"
         return 1
     fi
     export ZBX_CLI_COMMAND="$zbx_cmd"
@@ -100,12 +98,10 @@ EOF
 
 # Detect available Topdesk CLI command
 detect_topdesk_command() {
-    for cmd in topdesk-cli topdesk td-cli; do
-        if command -v "$cmd" >/dev/null 2>&1; then
-            echo "$cmd"
-            return 0
-        fi
-    done
+    if command -v "topdesk" >/dev/null 2>&1; then
+        echo "topdesk"
+        return 0
+    fi
     return 1
 }
 
@@ -121,8 +117,8 @@ authenticate_topdesk() {
     # Detect topdesk command
     local td_cmd="$(detect_topdesk_command)"
     if [ -z "$td_cmd" ]; then
-        log_error "No Topdesk CLI command found (tried: topdesk-cli, topdesk, td-cli)"
-        log_error "Please install the Topdesk CLI tool"
+        log_error "No Topdesk CLI command found (topdesk)"
+        log_error "Please ensure 'topdesk' command is installed and in PATH"
         return 1
     fi
     export TOPDESK_CLI_COMMAND="$td_cmd"

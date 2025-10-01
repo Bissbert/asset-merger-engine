@@ -40,9 +40,9 @@ zabbix_auth() {
         return 0
     fi
 
-    # Request new token via zbx-cli
+    # Request new token via zbx
     local token
-    token=$(zbx-cli --url "${url}" --user "${user}" --password "${password}" auth 2>/dev/null)
+    token=$(zbx --url "${url}" --user "${user}" --password "${password}" auth 2>/dev/null)
 
     if [ -n "${token}" ]; then
         cache_set "zabbix_token" "${token}"
@@ -59,7 +59,7 @@ zabbix_get_hosts() {
     local tag_filter="${2}"
     local output_format="${3:-json}"
 
-    local cmd="zbx-cli host list"
+    local cmd="zbx host list"
 
     # Add filters if provided
     [ -n "${group_filter}" ] && cmd="${cmd} --group '${group_filter}'"
@@ -78,7 +78,7 @@ zabbix_get_host_details() {
         return 1
     fi
 
-    zbx-cli host get --id "${host_id}" --format json 2>/dev/null
+    zbx host get --id "${host_id}" --format json 2>/dev/null
 }
 
 # Get host inventory
@@ -89,7 +89,7 @@ zabbix_get_inventory() {
         return 1
     fi
 
-    zbx-cli inventory get --host "${host_id}" --format json 2>/dev/null
+    zbx inventory get --host "${host_id}" --format json 2>/dev/null
 }
 
 # Get host interfaces
@@ -100,12 +100,12 @@ zabbix_get_interfaces() {
         return 1
     fi
 
-    zbx-cli interface list --host "${host_id}" --format json 2>/dev/null
+    zbx interface list --host "${host_id}" --format json 2>/dev/null
 }
 
 # Get host groups
 zabbix_get_groups() {
-    zbx-cli group list --format json 2>/dev/null
+    zbx group list --format json 2>/dev/null
 }
 
 # Get host templates
@@ -113,9 +113,9 @@ zabbix_get_templates() {
     local host_id="$1"
 
     if [ -z "${host_id}" ]; then
-        zbx-cli template list --format json 2>/dev/null
+        zbx template list --format json 2>/dev/null
     else
-        zbx-cli template list --host "${host_id}" --format json 2>/dev/null
+        zbx template list --host "${host_id}" --format json 2>/dev/null
     fi
 }
 

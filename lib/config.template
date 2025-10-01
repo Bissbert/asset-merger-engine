@@ -2,9 +2,8 @@
 # Copy this file to ~/.config/topdesk-zbx-merger/merger.conf and update with your settings
 #
 # IMPORTANT: This tool requires the following CLI tools to be installed:
-# - zbx-cli (or zbx/zabbix-cli): Install with 'pip install zbx-cli'
-#   Documentation: https://github.com/unioslo/zabbix-cli
-# - topdesk-cli (or topdesk/td-cli): Check your Topdesk documentation for installation
+# - zbx: Zabbix CLI tool
+# - topdesk: Topdesk CLI tool
 
 # Zabbix Configuration
 # --------------------
@@ -12,11 +11,11 @@ ZABBIX_SERVER="https://zabbix.example.com"
 ZABBIX_USER="your_zabbix_username"
 ZABBIX_PASS="your_zabbix_password"
 
-# Optional: Use existing zbx-cli config file instead
-# ZABBIX_CONFIG="${HOME}/.config/zbx-cli/config.ini"
+# Optional: Use existing zbx config file instead
+# ZABBIX_CONFIG="${HOME}/.config/zbx/config.ini"
 
-# Optional: Specify the zbx-cli command name if not in PATH
-# ZBX_CLI_COMMAND="/usr/local/bin/zbx-cli"
+# Optional: Specify the zbx command name if not in PATH
+# ZBX_CLI_COMMAND="/usr/local/bin/zbx"
 
 # Topdesk Configuration
 # ---------------------
@@ -29,11 +28,11 @@ TOPDESK_API_KEY="your_topdesk_api_key"
 # TOPDESK_USER="your_topdesk_username"
 # TOPDESK_PASS="your_topdesk_password"
 
-# Optional: Use existing topdesk-cli config file instead
-# TOPDESK_CONFIG="${HOME}/.config/topdesk-cli/config.ini"
+# Optional: Use existing topdesk config file instead
+# TOPDESK_CONFIG="${HOME}/.config/topdesk/config.ini"
 
-# Optional: Specify the topdesk-cli command name if not in PATH
-# TOPDESK_CLI_COMMAND="/usr/local/bin/topdesk-cli"
+# Optional: Specify the topdesk command name if not in PATH
+# TOPDESK_CLI_COMMAND="/usr/local/bin/topdesk"
 
 # General Settings
 # ----------------
