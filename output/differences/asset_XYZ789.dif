@@ -1,0 +1,30 @@
+{
+  "ip_address": {
+    "zabbix": "192.168.1.50",
+    "topdesk": "192.168.1.50"
+  },
+  "hostname": {
+    "zabbix": "workstation42",
+    "topdesk": "ws-42.local"
+  },
+  "location": {
+    "zabbix": "Building B, Floor 3",
+    "topdesk": "Building B, Floor 3"
+  },
+  "owner": {
+    "zabbix": "Bob Johnson",
+    "topdesk": "Robert Johnson"
+  },
+  "department": {
+    "zabbix": "Finance",
+    "topdesk": "Finance"
+  },
+  "status": {
+    "zabbix": "active",
+    "topdesk": "maintenance"
+  },
+  "serial_number": {
+    "zabbix": "SN123456789",
+    "topdesk": ""
+  }
+}

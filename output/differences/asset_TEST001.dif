@@ -1,0 +1,8 @@
+asset_id: TEST001
+differences:
+  - field_name: ip_address
+    zabbix_value: "10.0.0.1"
+    topdesk_value: "10.0.0.2"
+  - field_name: location
+    zabbix_value: "Server Room A"
+    topdesk_value: "Server Room B"

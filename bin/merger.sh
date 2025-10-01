@@ -1,0 +1,1460 @@
+#!/bin/sh
+# topdesk-zbx-merger - Main orchestration script
+# Integrates all components for Zabbix-Topdesk asset synchronization
+# Version: 3.0.0
+# POSIX-compliant production-ready implementation
+
+set -e  # Exit on error
+set -u  # Exit on undefined variable
+
+# Script metadata
+readonly SCRIPT_NAME="$(basename "$0")"
+readonly SCRIPT_VERSION="3.0.0"
+readonly SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+readonly PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+# Component paths
+readonly LIB_DIR="${PROJECT_ROOT}/lib"
+readonly BIN_DIR="${PROJECT_ROOT}/bin"
+readonly ETC_DIR="${PROJECT_ROOT}/etc"
+readonly VAR_DIR="${PROJECT_ROOT}/var"
+readonly OUTPUT_DIR="${PROJECT_ROOT}/output"
+readonly TMP_DIR="${PROJECT_ROOT}/tmp"
+
+# Default configuration
+readonly DEFAULT_CONFIG_FILE="${ETC_DIR}/merger.conf"
+readonly DEFAULT_LOG_DIR="${VAR_DIR}/log"
+readonly DEFAULT_CACHE_DIR="${VAR_DIR}/cache"
+readonly DEFAULT_RUN_DIR="${VAR_DIR}/run"
+
+# Component modules
+readonly DATAFETCHER_MODULE="${LIB_DIR}/datafetcher.sh"
+readonly VALIDATOR_MODULE="${LIB_DIR}/validator.py"
+readonly SORTER_MODULE="${LIB_DIR}/sorter.py"
+readonly APPLY_MODULE="${LIB_DIR}/apply.py"
+readonly LOGGER_MODULE="${LIB_DIR}/logger.py"
+readonly TUI_MODULE="${BIN_DIR}/tui_operator.sh"
+readonly COMMON_LIB="${LIB_DIR}/common.sh"
+
+# Runtime configuration
+CONFIG_FILE="${CONFIG_FILE:-${DEFAULT_CONFIG_FILE}}"
+LOG_FILE="${LOG_FILE:-${DEFAULT_LOG_DIR}/merger.log}"
+PID_FILE="${PID_FILE:-${DEFAULT_RUN_DIR}/merger.pid}"
+VERBOSE="${VERBOSE:-0}"
+DRY_RUN="${DRY_RUN:-0}"
+DEBUG="${DEBUG:-0}"
+FORCE="${FORCE:-0}"
+INTERACTIVE="${INTERACTIVE:-1}"
+
+# Working files
+readonly ZABBIX_DATA_FILE="${OUTPUT_DIR}/zabbix_assets.json"
+readonly TOPDESK_DATA_FILE="${OUTPUT_DIR}/topdesk_assets.json"
+readonly DIFF_REPORT_FILE="${OUTPUT_DIR}/differences/diff_report.json"
+readonly APPLY_QUEUE_FILE="${OUTPUT_DIR}/apply/queue.json"
+readonly VALIDATION_REPORT="${OUTPUT_DIR}/validation_report.json"
+
+# Load common library
+if [ -f "${COMMON_LIB}" ]; then
+    . "${COMMON_LIB}"
+else
+    # Fallback logging if common.sh not available
+    log_message() {
+        echo "$(date '+%Y-%m-%d %H:%M:%S') [$1] ${2}" | tee -a "${LOG_FILE}"
+    }
+    log_error() { log_message "ERROR" "$1"; }
+    log_info() { log_message "INFO" "$1"; }
+    log_debug() { [ "${DEBUG}" = "1" ] && log_message "DEBUG" "$1" || true; }
+fi
+
+# Color codes for output
+if [ -t 1 ]; then
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    YELLOW='\033[1;33m'
+    BLUE='\033[0;34m'
+    CYAN='\033[0;36m'
+    BOLD='\033[1m'
+    NC='\033[0m'
+else
+    RED=''
+    GREEN=''
+    YELLOW=''
+    BLUE=''
+    CYAN=''
+    BOLD=''
+    NC=''
+fi
+
+# Print usage information
+usage() {
+    cat << EOF
+${BOLD}Usage:${NC} ${SCRIPT_NAME} [OPTIONS] COMMAND [ARGUMENTS]
+
+${BOLD}DESCRIPTION:${NC}
+    Orchestrates asset synchronization between Zabbix monitoring and Topdesk ITSM.
+    Integrates multiple components for data retrieval, comparison, and application.
+
+${BOLD}COMMANDS:${NC}
+    ${CYAN}fetch${NC}       Retrieve data from Zabbix and Topdesk
+    ${CYAN}diff${NC}        Compare and identify differences
+    ${CYAN}tui${NC}         Interactive TUI for field selection
+    ${CYAN}apply${NC}       Apply selected changes to Topdesk
+    ${CYAN}sync${NC}        Full workflow (fetch -> diff -> tui -> apply)
+    ${CYAN}validate${NC}    Validate configuration and connectivity
+    ${CYAN}health${NC}      Comprehensive health check of all components
+    ${CYAN}status${NC}      Show current process status
+    ${CYAN}clean${NC}       Clean temporary and cache files
+
+${BOLD}OPTIONS:${NC}
+    -c, --config FILE    Configuration file (default: ${DEFAULT_CONFIG_FILE})
+    -o, --output DIR     Output directory (default: ${OUTPUT_DIR})
+    -l, --log FILE       Log file (default: ${LOG_FILE})
+    -v, --verbose        Enable verbose output
+    -d, --debug          Enable debug mode
+    -n, --dry-run        Perform dry run without changes
+    -f, --force          Force operation without confirmation
+    -i, --interactive    Interactive mode (default: on)
+    -b, --batch          Batch mode (non-interactive)
+    -h, --help           Show this help message
+    -V, --version        Show version information
+
+${BOLD}WORKFLOW COMMANDS:${NC}
+    ${CYAN}fetch${NC} [OPTIONS]
+        --group GROUP       Filter by Zabbix group
+        --tag TAG          Filter by tag
+        --limit N          Limit number of assets
+        --cache            Use cached data if available
+
+    ${CYAN}diff${NC} [OPTIONS]
+        --fields FIELDS    Comma-separated fields to compare
+        --format FORMAT    Output format (json|csv|html)
+        --threshold N      Similarity threshold (0-100)
+
+    ${CYAN}tui${NC} [OPTIONS]
+        --mode MODE        TUI mode (dialog|whiptail|pure)
+        --auto-select      Auto-select all Zabbix values
+
+    ${CYAN}apply${NC} [OPTIONS]
+        --queue FILE       Apply from queue file
+        --batch-size N     Batch size for updates
+        --confirm          Require confirmation
+
+    ${CYAN}sync${NC} [OPTIONS]
+        --auto             Full automatic mode
+        --profile PROFILE  Use predefined profile
+
+${BOLD}EXAMPLES:${NC}
+    # Validate system configuration
+    ${SCRIPT_NAME} validate
+
+    # Full interactive synchronization
+    ${SCRIPT_NAME} sync
+
+    # Fetch with filters
+    ${SCRIPT_NAME} fetch --group "Linux servers" --tag "production"
+
+    # Non-interactive batch sync
+    ${SCRIPT_NAME} -b sync --auto
+
+    # Dry-run to preview changes
+    ${SCRIPT_NAME} -n sync
+
+${BOLD}FILES:${NC}
+    Configuration: ${ETC_DIR}/merger.conf
+    Logs:         ${DEFAULT_LOG_DIR}/
+    Cache:        ${DEFAULT_CACHE_DIR}/
+    Output:       ${OUTPUT_DIR}/
+
+${BOLD}COMPONENTS:${NC}
+    - datafetcher: Retrieves data from Zabbix/Topdesk
+    - validator:   Validates data and configuration
+    - sorter:      Compares and sorts differences
+    - tui:         Interactive field selection
+    - applier:     Applies changes to Topdesk
+    - logger:      Centralized logging system
+
+${BOLD}EXIT STATUS:${NC}
+    0  Success
+    1  General error
+    2  Configuration error
+    3  Connection error
+    4  Data error
+    5  Component error
+
+${BOLD}VERSION:${NC}
+    ${SCRIPT_NAME} version ${SCRIPT_VERSION}
+
+${BOLD}DOCUMENTATION:${NC}
+    See ${PROJECT_ROOT}/README.md for detailed documentation
+
+EOF
+}
+
+# Print version
+version() {
+    echo "${SCRIPT_NAME} version ${SCRIPT_VERSION}"
+    echo "Topdesk-Zabbix Asset Merger"
+    echo "Copyright (c) 2025"
+}
+
+# Initialize environment
+init_environment() {
+    # Create log directory first if needed
+    if [ ! -d "${DEFAULT_LOG_DIR}" ]; then
+        mkdir -p "${DEFAULT_LOG_DIR}" 2>/dev/null || {
+            echo "Error: Failed to create log directory: ${DEFAULT_LOG_DIR}" >&2
+            return 1
+        }
+    fi
+
+    log_info "Initializing environment..."
+
+    # Create required directories
+    for dir in "${DEFAULT_LOG_DIR}" "${DEFAULT_CACHE_DIR}" "${DEFAULT_RUN_DIR}" \
+               "${OUTPUT_DIR}" "${TMP_DIR}" "${OUTPUT_DIR}/differences" \
+               "${OUTPUT_DIR}/apply" "${OUTPUT_DIR}/reports"; do
+        if [ ! -d "${dir}" ]; then
+            mkdir -p "${dir}" 2>/dev/null || {
+                log_error "Failed to create directory: ${dir}"
+                echo "Error: Failed to create directory: ${dir}" >&2
+                return 1
+            }
+        fi
+    done
+
+    # Initialize log file
+    touch "${LOG_FILE}" 2>/dev/null || {
+        log_error "Failed to create log file: ${LOG_FILE}"
+        echo "Error: Failed to create log file: ${LOG_FILE}" >&2
+        return 1
+    }
+
+    # Check PID file
+    if [ -f "${PID_FILE}" ]; then
+        old_pid=$(cat "${PID_FILE}" 2>/dev/null)
+        if kill -0 "${old_pid}" 2>/dev/null; then
+            log_error "Another instance is running (PID: ${old_pid})"
+            return 1
+        else
+            log_info "Removing stale PID file"
+            rm -f "${PID_FILE}"
+        fi
+    fi
+
+    # Write PID file
+    echo $$ > "${PID_FILE}" 2>/dev/null || {
+        log_error "Failed to write PID file: ${PID_FILE}"
+        echo "Error: Failed to write PID file: ${PID_FILE}" >&2
+        return 1
+    }
+
+    log_info "Environment initialized successfully"
+    return 0
+}
+
+# Cleanup on exit
+cleanup() {
+    local exit_code=$?
+
+    # Only log in debug mode to stderr, not stdout
+    [ "${DEBUG}" = "1" ] && echo "[DEBUG] Cleaning up (exit code: ${exit_code})..." >&2
+
+    # Remove PID file
+    [ -f "${PID_FILE}" ] && rm -f "${PID_FILE}"
+
+    # Clean temporary files if not debug mode
+    if [ "${DEBUG}" != "1" ] && [ -d "${TMP_DIR}" ]; then
+        find "${TMP_DIR}" -type f -name "tmp.*" -mtime +1 -delete 2>/dev/null
+    fi
+
+    # Only log completion in verbose or debug mode
+    [ "${VERBOSE}" = "1" ] && log_info "Cleanup completed"
+
+    exit ${exit_code}
+}
+
+# Validate configuration
+validate_config() {
+    log_info "Validating configuration..."
+
+    if [ ! -f "${CONFIG_FILE}" ]; then
+        log_error "Configuration file not found: ${CONFIG_FILE}"
+        echo "Creating default configuration..."
+        create_default_config
+        return 1
+    fi
+
+    # Source configuration
+    . "${CONFIG_FILE}" || {
+        log_error "Failed to load configuration"
+        return 1
+    }
+
+    # Validate required settings
+    local errors=0
+
+    # Check Zabbix configuration
+    if [ -z "${ZABBIX_URL:-}" ] || [ -z "${ZABBIX_USER:-}" ]; then
+        log_error "Missing Zabbix configuration"
+        errors=$((errors + 1))
+    fi
+
+    # Check Topdesk configuration
+    if [ -z "${TOPDESK_URL:-}" ] || [ -z "${TOPDESK_USER:-}" ]; then
+        log_error "Missing Topdesk configuration"
+        errors=$((errors + 1))
+    fi
+
+    if [ ${errors} -gt 0 ]; then
+        log_error "Configuration validation failed with ${errors} errors"
+        return 1
+    fi
+
+    log_info "Configuration validated successfully"
+    return 0
+}
+
+# Create default configuration
+create_default_config() {
+    cat > "${CONFIG_FILE}" << 'EOF'
+# Topdesk-Zabbix Merger Configuration
+# Generated on: $(date)
+
+# Zabbix Configuration
+ZABBIX_URL="https://zabbix.example.com"
+ZABBIX_USER="admin"
+ZABBIX_PASSWORD=""
+ZABBIX_API_TOKEN=""
+ZABBIX_GROUP_FILTER="Topdesk"
+ZABBIX_TAG_FILTER=""
+
+# Topdesk Configuration
+TOPDESK_URL="https://topdesk.example.com"
+TOPDESK_USER="api_user"
+TOPDESK_PASSWORD=""
+TOPDESK_API_TOKEN=""
+TOPDESK_BRANCH=""
+
+# Merge Settings
+MERGE_STRATEGY="update"          # update|create|sync
+CONFLICT_RESOLUTION="zabbix"     # zabbix|topdesk|manual|newest
+BATCH_SIZE="100"
+FIELD_MAPPING="auto"             # auto|manual|config
+
+# Fields to sync
+SYNC_FIELDS="name,ip_address,location,owner,status,description"
+IGNORE_FIELDS="last_seen,created_date"
+CUSTOM_FIELD_PREFIX="zbx_"
+
+# Processing Options
+ENABLE_CACHING="true"
+CACHE_TTL="300"                  # seconds
+MAX_RETRIES="3"
+RETRY_DELAY="5"                  # seconds
+CONNECTION_TIMEOUT="30"          # seconds
+
+# Validation Rules
+VALIDATE_IP="true"
+VALIDATE_HOSTNAME="true"
+VALIDATE_EMAIL="true"
+REQUIRE_OWNER="false"
+
+# Output Options
+OUTPUT_FORMAT="json"             # json|csv|xml|yaml
+GENERATE_REPORTS="true"
+REPORT_FORMAT="html"             # html|pdf|text|markdown
+COMPRESS_OUTPUT="false"
+
+# Logging
+LOG_LEVEL="INFO"                # DEBUG|INFO|WARNING|ERROR
+LOG_ROTATE="true"
+LOG_MAX_SIZE="10M"
+LOG_MAX_FILES="10"
+
+# TUI Settings
+TUI_MODE="auto"                  # auto|dialog|whiptail|pure
+TUI_COLORS="true"
+TUI_AUTO_REFRESH="true"
+TUI_REFRESH_INTERVAL="5"
+
+# Performance
+PARALLEL_FETCH="true"
+MAX_WORKERS="4"
+CHUNK_SIZE="50"
+
+# Security
+VERIFY_SSL="true"
+SSL_CERT_PATH=""
+USE_KEYRING="false"
+
+# Notifications (optional)
+NOTIFY_EMAIL=""
+NOTIFY_SLACK_WEBHOOK=""
+NOTIFY_ON_SUCCESS="false"
+NOTIFY_ON_ERROR="true"
+
+EOF
+    log_info "Default configuration created: ${CONFIG_FILE}"
+    echo "Please edit ${CONFIG_FILE} with your settings"
+}
+
+# Command: fetch
+cmd_fetch() {
+    log_info "=== Starting Data Fetch ==="
+
+    local group_filter=""
+    local tag_filter=""
+    local limit=""
+    local use_cache=0
+
+    # Parse arguments
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --group)
+                group_filter="$2"
+                shift 2
+                ;;
+            --tag)
+                tag_filter="$2"
+                shift 2
+                ;;
+            --limit)
+                limit="$2"
+                shift 2
+                ;;
+            --cache)
+                use_cache=1
+                shift
+                ;;
+            *)
+                shift
+                ;;
+        esac
+    done
+
+    # Check for cached data
+    if [ ${use_cache} -eq 1 ] && [ -f "${ZABBIX_DATA_FILE}" ] && [ -f "${TOPDESK_DATA_FILE}" ]; then
+        local cache_age=$(( $(date +%s) - $(stat -f %m "${ZABBIX_DATA_FILE}" 2>/dev/null || stat -c %Y "${ZABBIX_DATA_FILE}" 2>/dev/null) ))
+        if [ ${cache_age} -lt ${CACHE_TTL:-300} ]; then
+            log_info "Using cached data (age: ${cache_age}s)"
+            return 0
+        fi
+    fi
+
+    # Load configuration
+    . "${CONFIG_FILE}"
+
+    # Export environment for modules
+    export ZABBIX_URL ZABBIX_USER ZABBIX_PASSWORD ZABBIX_API_TOKEN
+    export TOPDESK_URL TOPDESK_USER TOPDESK_PASSWORD TOPDESK_API_TOKEN
+    export LOG_FILE OUTPUT_DIR DEBUG VERBOSE
+
+    # Ensure output directories exist
+    mkdir -p "$(dirname "${ZABBIX_DATA_FILE}")"
+    mkdir -p "$(dirname "${TOPDESK_DATA_FILE}")"
+
+    # Fetch from Zabbix using the datafetcher module
+    log_info "Fetching data from Zabbix..."
+    if [ -f "${DATAFETCHER_MODULE}" ]; then
+        # Source the datafetcher module
+        . "${DATAFETCHER_MODULE}"
+
+        # Call the fetch_zabbix function with proper arguments
+        fetch_zabbix_assets \
+            "${group_filter:-${ZABBIX_GROUP_FILTER:-Topdesk}}" \
+            "${tag_filter:-${ZABBIX_TAG_FILTER:-}}" \
+            "${limit:-}" \
+            > "${ZABBIX_DATA_FILE}" || {
+            log_error "Failed to fetch Zabbix data"
+            return 4
+        }
+
+        log_info "Zabbix data saved to ${ZABBIX_DATA_FILE}"
+    else
+        log_error "Datafetcher module not found: ${DATAFETCHER_MODULE}"
+        return 5
+    fi
+
+    # Fetch from Topdesk using the datafetcher module
+    log_info "Fetching data from Topdesk..."
+    if [ -f "${DATAFETCHER_MODULE}" ]; then
+        # Call the fetch_topdesk function
+        fetch_topdesk_assets \
+            "${limit:-}" \
+            > "${TOPDESK_DATA_FILE}" || {
+            log_error "Failed to fetch Topdesk data"
+            return 4
+        }
+
+        log_info "Topdesk data saved to ${TOPDESK_DATA_FILE}"
+    else
+        log_error "Datafetcher module not found: ${DATAFETCHER_MODULE}"
+        return 5
+    fi
+
+    # Validate fetched data
+    if [ -f "${ZABBIX_DATA_FILE}" ]; then
+        if ! jq empty "${ZABBIX_DATA_FILE}" 2>/dev/null; then
+            log_error "Invalid JSON in Zabbix data file"
+            return 4
+        fi
+    else
+        log_error "Zabbix data file not created"
+        return 4
+    fi
+
+    if [ -f "${TOPDESK_DATA_FILE}" ]; then
+        if ! jq empty "${TOPDESK_DATA_FILE}" 2>/dev/null; then
+            log_error "Invalid JSON in Topdesk data file"
+            return 4
+        fi
+    else
+        log_error "Topdesk data file not created"
+        return 4
+    fi
+
+    # Show summary
+    if [ -f "${ZABBIX_DATA_FILE}" ] && [ -f "${TOPDESK_DATA_FILE}" ]; then
+        local zbx_count=$(jq 'length' "${ZABBIX_DATA_FILE}" 2>/dev/null || echo "0")
+        local td_count=$(jq 'length' "${TOPDESK_DATA_FILE}" 2>/dev/null || echo "0")
+
+        echo ""
+        echo "${GREEN}Data fetch completed successfully${NC}"
+        echo "  Zabbix assets:  ${zbx_count}"
+        echo "  Topdesk assets: ${td_count}"
+        echo ""
+
+        # Log to centralized logger if available
+        if [ -f "${LOGGER_MODULE}" ]; then
+            python3 "${LOGGER_MODULE}" log \
+                --level INFO \
+                --component datafetcher \
+                --message "Fetch completed: Zabbix=${zbx_count}, Topdesk=${td_count}" \
+                2>/dev/null || true
+        fi
+    fi
+
+    log_info "Data fetch completed"
+    return 0
+}
+
+# Command: diff
+cmd_diff() {
+    log_info "=== Starting Difference Analysis ==="
+
+    local fields=""
+    local format="json"
+    local threshold="80"
+
+    # Parse arguments
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --fields)
+                fields="$2"
+                shift 2
+                ;;
+            --format)
+                format="$2"
+                shift 2
+                ;;
+            --threshold)
+                threshold="$2"
+                shift 2
+                ;;
+            *)
+                shift
+                ;;
+        esac
+    done
+
+    # Check input files
+    if [ ! -f "${ZABBIX_DATA_FILE}" ] || [ ! -f "${TOPDESK_DATA_FILE}" ]; then
+        log_error "Input data files not found. Run 'fetch' first."
+        return 4
+    fi
+
+    # Load configuration
+    . "${CONFIG_FILE}"
+
+    # Use Python sorter module for comparison
+    log_info "Comparing assets and identifying differences..."
+
+    if [ -f "${SORTER_MODULE}" ]; then
+        python3 "${SORTER_MODULE}" \
+            --zabbix "${ZABBIX_DATA_FILE}" \
+            --topdesk "${TOPDESK_DATA_FILE}" \
+            --output "${DIFF_REPORT_FILE}" \
+            --format "${format}" \
+            --threshold "${threshold}" \
+            ${fields:+--fields "${fields}"} || {
+            log_error "Difference analysis failed"
+            return 5
+        }
+    else
+        log_error "Sorter module not found: ${SORTER_MODULE}"
+        return 5
+    fi
+
+    # Show summary
+    if [ -f "${DIFF_REPORT_FILE}" ]; then
+        local total_diff=$(jq '.summary.total_differences' "${DIFF_REPORT_FILE}" 2>/dev/null || echo "0")
+        local matched=$(jq '.summary.matched_assets' "${DIFF_REPORT_FILE}" 2>/dev/null || echo "0")
+        local unmatched=$(jq '.summary.unmatched_assets' "${DIFF_REPORT_FILE}" 2>/dev/null || echo "0")
+
+        echo ""
+        echo "${GREEN}Difference analysis completed${NC}"
+        echo "  Matched assets:     ${matched}"
+        echo "  Unmatched assets:   ${unmatched}"
+        echo "  Total differences:  ${total_diff}"
+        echo ""
+        echo "Report saved to: ${DIFF_REPORT_FILE}"
+        echo ""
+    fi
+
+    log_info "Difference analysis completed"
+    return 0
+}
+
+# Command: tui
+cmd_tui() {
+    log_info "=== Starting Terminal User Interface ==="
+
+    local mode="auto"
+    local auto_select=0
+
+    # Parse arguments
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --mode)
+                mode="$2"
+                shift 2
+                ;;
+            --auto-select)
+                auto_select=1
+                shift
+                ;;
+            *)
+                shift
+                ;;
+        esac
+    done
+
+    # Check for difference report
+    if [ ! -f "${DIFF_REPORT_FILE}" ]; then
+        log_error "Difference report not found. Run 'diff' first."
+        return 4
+    fi
+
+    # Launch TUI
+    if [ -x "${TUI_MODULE}" ]; then
+        log_info "Launching TUI for field selection..."
+
+        "${TUI_MODULE}" \
+            --input "${DIFF_REPORT_FILE}" \
+            --output "${APPLY_QUEUE_FILE}" \
+            --mode "${mode}" \
+            ${auto_select:+--auto-select} || {
+            log_error "TUI operation failed"
+            return 5
+        }
+
+        # Show summary
+        if [ -f "${APPLY_QUEUE_FILE}" ]; then
+            local queue_count=$(jq 'length' "${APPLY_QUEUE_FILE}" 2>/dev/null || echo "0")
+            echo ""
+            echo "${GREEN}Field selection completed${NC}"
+            echo "  Changes queued: ${queue_count}"
+            echo ""
+        fi
+    else
+        log_error "TUI module not found or not executable: ${TUI_MODULE}"
+        return 5
+    fi
+
+    log_info "TUI operation completed"
+    return 0
+}
+
+# Command: apply
+cmd_apply() {
+    log_info "=== Starting Apply Changes ==="
+
+    local queue_file="${APPLY_QUEUE_FILE}"
+    local batch_size="50"
+    local require_confirm=1
+
+    # Parse arguments
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --queue)
+                queue_file="$2"
+                shift 2
+                ;;
+            --batch-size)
+                batch_size="$2"
+                shift 2
+                ;;
+            --no-confirm)
+                require_confirm=0
+                shift
+                ;;
+            *)
+                shift
+                ;;
+        esac
+    done
+
+    # Check queue file
+    if [ ! -f "${queue_file}" ]; then
+        log_error "Apply queue not found: ${queue_file}"
+        return 4
+    fi
+
+    # Load configuration
+    . "${CONFIG_FILE}"
+
+    # Count changes
+    local change_count=$(jq 'length' "${queue_file}" 2>/dev/null || echo "0")
+
+    if [ ${change_count} -eq 0 ]; then
+        log_info "No changes to apply"
+        return 0
+    fi
+
+    # Confirm if required
+    if [ ${require_confirm} -eq 1 ] && [ ${FORCE} -eq 0 ]; then
+        echo ""
+        echo "${YELLOW}About to apply ${change_count} changes to Topdesk${NC}"
+        printf "Continue? [y/N] "
+        read -r response
+        case "${response}" in
+            [yY][eE][sS]|[yY])
+                ;;
+            *)
+                log_info "Apply cancelled by user"
+                return 0
+                ;;
+        esac
+    fi
+
+    # Apply changes using Python module
+    if [ -f "${APPLY_MODULE}" ]; then
+        log_info "Applying changes to Topdesk..."
+
+        python3 "${APPLY_MODULE}" \
+            --queue "${queue_file}" \
+            --batch-size "${batch_size}" \
+            ${DRY_RUN:+--dry-run} \
+            --output "${OUTPUT_DIR}/apply/results.json" || {
+            log_error "Failed to apply changes"
+            return 5
+        }
+
+        # Show results
+        if [ -f "${OUTPUT_DIR}/apply/results.json" ]; then
+            local success=$(jq '.summary.successful' "${OUTPUT_DIR}/apply/results.json" 2>/dev/null || echo "0")
+            local failed=$(jq '.summary.failed' "${OUTPUT_DIR}/apply/results.json" 2>/dev/null || echo "0")
+
+            echo ""
+            echo "${GREEN}Apply completed${NC}"
+            echo "  Successful: ${success}"
+            echo "  Failed:     ${failed}"
+            echo ""
+        fi
+    else
+        log_error "Apply module not found: ${APPLY_MODULE}"
+        return 5
+    fi
+
+    log_info "Apply operation completed"
+    return 0
+}
+
+# Command: sync (full workflow)
+cmd_sync() {
+    log_info "=== Starting Full Synchronization Workflow ==="
+
+    local auto_mode=0
+    local profile=""
+
+    # Parse arguments
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --auto)
+                auto_mode=1
+                INTERACTIVE=0
+                shift
+                ;;
+            --profile)
+                profile="$2"
+                shift 2
+                ;;
+            *)
+                shift
+                ;;
+        esac
+    done
+
+    # Load profile if specified
+    if [ -n "${profile}" ] && [ -f "${ETC_DIR}/profiles/${profile}.conf" ]; then
+        log_info "Loading profile: ${profile}"
+        . "${ETC_DIR}/profiles/${profile}.conf"
+    fi
+
+    echo ""
+    echo "${BOLD}Starting full synchronization workflow...${NC}"
+    echo ""
+
+    # Step 1: Fetch data
+    echo "${CYAN}Step 1/4: Fetching data...${NC}"
+    cmd_fetch || return $?
+
+    # Step 2: Analyze differences
+    echo ""
+    echo "${CYAN}Step 2/4: Analyzing differences...${NC}"
+    cmd_diff || return $?
+
+    # Step 3: Select fields (interactive or auto)
+    echo ""
+    if [ ${INTERACTIVE} -eq 1 ] && [ ${auto_mode} -eq 0 ]; then
+        echo "${CYAN}Step 3/4: Interactive field selection...${NC}"
+        cmd_tui || return $?
+    else
+        echo "${CYAN}Step 3/4: Auto-selecting all Zabbix values...${NC}"
+        cmd_tui --auto-select || return $?
+    fi
+
+    # Step 4: Apply changes
+    echo ""
+    echo "${CYAN}Step 4/4: Applying changes...${NC}"
+    if [ ${auto_mode} -eq 1 ]; then
+        cmd_apply --no-confirm || return $?
+    else
+        cmd_apply || return $?
+    fi
+
+    echo ""
+    echo "${GREEN}${BOLD}Full synchronization completed successfully!${NC}"
+    echo ""
+
+    # Generate report
+    if [ "${GENERATE_REPORTS:-true}" = "true" ]; then
+        cmd_report
+    fi
+
+    log_info "Full synchronization workflow completed"
+    return 0
+}
+
+# Command: validate
+cmd_validate() {
+    log_info "=== Starting Validation ==="
+    log_debug "Starting cmd_validate function" || true
+
+    printf "%bSystem Validation%b\n" "${BOLD}" "${NC}" || true
+    printf "\n" || true
+
+    # Check configuration
+    log_debug "About to check configuration" || true
+    printf "Checking configuration... " || true
+    if validate_config; then
+        printf "%bOK%b\n" "${GREEN}" "${NC}" || true
+    else
+        printf "%bFAILED%b\n" "${RED}" "${NC}" || true
+        return 2
+    fi
+    log_debug "Configuration check completed" || true
+
+    # Check components
+    printf "Checking components... "
+    local components_ok=1
+
+    # Check shell scripts (must be executable)
+    for component in "${DATAFETCHER_MODULE}" "${TUI_MODULE}"; do
+        if [ ! -f "${component}" ]; then
+            components_ok=0
+            log_error "Component not found: ${component}"
+        elif [ ! -r "${component}" ]; then
+            components_ok=0
+            log_error "Component not readable: ${component}"
+        fi
+    done
+
+    # Check Python modules (must exist)
+    for component in "${VALIDATOR_MODULE}" "${SORTER_MODULE}" "${APPLY_MODULE}" "${LOGGER_MODULE}"; do
+        if [ ! -f "${component}" ]; then
+            components_ok=0
+            log_error "Component not found: ${component}"
+        fi
+    done
+
+    if [ ${components_ok} -eq 1 ]; then
+        printf "%bOK%b\n" "${GREEN}" "${NC}"
+    else
+        printf "%bFAILED%b\n" "${RED}" "${NC}"
+        return 5
+    fi
+
+    # Check Python
+    printf "Checking Python... "
+    if command -v python3 >/dev/null 2>&1; then
+        local py_version=$(python3 --version 2>&1 | cut -d' ' -f2)
+        printf "%bOK%b (%s)\n" "${GREEN}" "${NC}" "${py_version}"
+    else
+        printf "%bFAILED%b\n" "${RED}" "${NC}"
+        return 5
+    fi
+
+    # Check required commands
+    printf "Checking required commands... "
+    local cmds_ok=1
+    for cmd in jq curl; do
+        if ! command -v "${cmd}" >/dev/null 2>&1; then
+            cmds_ok=0
+            log_error "Required command not found: ${cmd}"
+        fi
+    done
+
+    if [ ${cmds_ok} -eq 1 ]; then
+        printf "%bOK%b\n" "${GREEN}" "${NC}"
+    else
+        printf "%bFAILED%b\n" "${RED}" "${NC}"
+        return 5
+    fi
+
+    # Check CLI tools
+    printf "Checking CLI tools... "
+    local cli_tools_ok=1
+
+    # Check zbx command
+    if command -v zbx >/dev/null 2>&1; then
+        printf "%bzbx OK%b " "${GREEN}" "${NC}"
+    else
+        printf "%bzbx NOT FOUND%b " "${YELLOW}" "${NC}"
+        cli_tools_ok=0
+    fi
+
+    # Check topdesk command
+    if command -v topdesk >/dev/null 2>&1; then
+        printf "%btopdesk OK%b\n" "${GREEN}" "${NC}"
+    else
+        printf "%btopdesk NOT FOUND%b\n" "${YELLOW}" "${NC}"
+        cli_tools_ok=0
+    fi
+
+    if [ ${cli_tools_ok} -eq 0 ]; then
+        log_info "CLI tools not found - will use API fallback methods"
+    fi
+
+    # Test connections if not dry-run
+    if [ ${DRY_RUN} -eq 0 ]; then
+        # Load config
+        . "${CONFIG_FILE}"
+
+        # Test Zabbix
+        printf "Testing Zabbix connection... "
+        if [ -n "${ZABBIX_URL}" ]; then
+            if curl -s -o /dev/null -w "%{http_code}" "${ZABBIX_URL}/api_jsonrpc.php" | grep -q "200\|401\|403"; then
+                printf "%bOK%b\n" "${GREEN}" "${NC}"
+            else
+                printf "%bUNREACHABLE%b\n" "${YELLOW}" "${NC}"
+            fi
+        else
+            printf "%bUNCONFIGURED%b\n" "${YELLOW}" "${NC}"
+        fi
+
+        # Test Topdesk
+        printf "Testing Topdesk connection... "
+        if [ -n "${TOPDESK_URL}" ]; then
+            if curl -s -o /dev/null -w "%{http_code}" "${TOPDESK_URL}/api" | grep -q "200\|401\|403"; then
+                printf "%bOK%b\n" "${GREEN}" "${NC}"
+            else
+                printf "%bUNREACHABLE%b\n" "${YELLOW}" "${NC}"
+            fi
+        else
+            printf "%bUNCONFIGURED%b\n" "${YELLOW}" "${NC}"
+        fi
+    fi
+
+    # Use Python validator for detailed validation
+    if [ -f "${VALIDATOR_MODULE}" ]; then
+        printf "\n"
+        printf "Running detailed validation...\n"
+        python3 "${VALIDATOR_MODULE}" \
+            --config "${CONFIG_FILE}" \
+            --output "${VALIDATION_REPORT}" || {
+            log_error "Detailed validation failed"
+        }
+
+        if [ -f "${VALIDATION_REPORT}" ]; then
+            printf "\n"
+            printf "Validation report: %s\n" "${VALIDATION_REPORT}"
+        fi
+    fi
+
+    printf "\n"
+    printf "%bValidation completed%b\n" "${GREEN}" "${NC}"
+
+    log_info "Validation completed"
+    return 0
+}
+
+# Command: status
+cmd_status() {
+    echo "${BOLD}Topdesk-Zabbix Merger Status${NC}"
+    echo ""
+
+    # Check if running
+    if [ -f "${PID_FILE}" ]; then
+        local pid=$(cat "${PID_FILE}")
+        if kill -0 "${pid}" 2>/dev/null; then
+            echo "Status: ${GREEN}RUNNING${NC} (PID: ${pid})"
+        else
+            echo "Status: ${YELLOW}STOPPED${NC} (stale PID file)"
+        fi
+    else
+        echo "Status: ${YELLOW}STOPPED${NC}"
+    fi
+
+    echo ""
+
+    # Show file timestamps
+    echo "${BOLD}Data Files:${NC}"
+    for file in "${ZABBIX_DATA_FILE}" "${TOPDESK_DATA_FILE}" "${DIFF_REPORT_FILE}" "${APPLY_QUEUE_FILE}"; do
+        if [ -f "${file}" ]; then
+            local timestamp=$(date -r "${file}" "+%Y-%m-%d %H:%M:%S" 2>/dev/null || date "+%Y-%m-%d %H:%M:%S" -d "@$(stat -c %Y "${file}")" 2>/dev/null)
+            local size=$(du -h "${file}" | cut -f1)
+            printf "  %-40s ${GREEN}EXISTS${NC} (%s, %s)\n" "$(basename "${file}")" "${size}" "${timestamp}"
+        else
+            printf "  %-40s ${YELLOW}NOT FOUND${NC}\n" "$(basename "${file}")"
+        fi
+    done
+
+    echo ""
+
+    # Show log tail
+    if [ -f "${LOG_FILE}" ]; then
+        echo "${BOLD}Recent Log Entries:${NC}"
+        tail -5 "${LOG_FILE}" | sed 's/^/  /'
+    fi
+
+    echo ""
+
+    # Show cache status
+    if [ -d "${DEFAULT_CACHE_DIR}" ]; then
+        local cache_count=$(find "${DEFAULT_CACHE_DIR}" -type f | wc -l)
+        local cache_size=$(du -sh "${DEFAULT_CACHE_DIR}" 2>/dev/null | cut -f1)
+        echo "${BOLD}Cache:${NC} ${cache_count} files (${cache_size:-0})"
+    fi
+
+    return 0
+}
+
+# Command: report
+cmd_report() {
+    log_info "Generating synchronization report..."
+
+    local report_file="${OUTPUT_DIR}/reports/sync_report_$(date +%Y%m%d_%H%M%S).html"
+    mkdir -p "$(dirname "${report_file}")"
+
+    # Generate HTML report
+    cat > "${report_file}" << 'EOHTML'
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Synchronization Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #333; }
+        .summary { background: #f0f0f0; padding: 15px; border-radius: 5px; }
+        .success { color: green; }
+        .warning { color: orange; }
+        .error { color: red; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #4CAF50; color: white; }
+    </style>
+</head>
+<body>
+    <h1>Topdesk-Zabbix Synchronization Report</h1>
+EOHTML
+
+    echo "    <div class='summary'>" >> "${report_file}"
+    echo "        <h2>Summary</h2>" >> "${report_file}"
+    echo "        <p>Generated: $(date)</p>" >> "${report_file}"
+    echo "        <p>Version: ${SCRIPT_VERSION}</p>" >> "${report_file}"
+
+    # Add statistics if available
+    if [ -f "${OUTPUT_DIR}/apply/results.json" ]; then
+        local success=$(jq '.summary.successful' "${OUTPUT_DIR}/apply/results.json" 2>/dev/null || echo "0")
+        local failed=$(jq '.summary.failed' "${OUTPUT_DIR}/apply/results.json" 2>/dev/null || echo "0")
+        echo "        <p>Successful Updates: <span class='success'>${success}</span></p>" >> "${report_file}"
+        echo "        <p>Failed Updates: <span class='error'>${failed}</span></p>" >> "${report_file}"
+    fi
+
+    echo "    </div>" >> "${report_file}"
+    echo "</body></html>" >> "${report_file}"
+
+    log_info "Report generated: ${report_file}"
+    echo "Report saved to: ${report_file}"
+
+    return 0
+}
+
+# Command: health (comprehensive health check)
+cmd_health() {
+    log_info "=== Running Comprehensive Health Check ==="
+
+    local health_score=0
+    local max_score=10
+
+    echo "System Health Check" || return 1
+    echo "==================" || return 1
+    echo "" || return 1
+
+    # 1. Configuration
+    printf "1. Configuration Status: "
+    if [ -f "${CONFIG_FILE}" ]; then
+        if [ -r "${CONFIG_FILE}" ]; then
+            echo "[OK]"
+            health_score=$((health_score + 1))
+        else
+            echo "[ERROR]"
+        fi
+    else
+        echo "[MISSING]"
+    fi
+
+    # 2. Required directories
+    printf "2. Directory Structure: "
+    local dirs_ok=1
+    for dir in "${LIB_DIR}" "${BIN_DIR}" "${OUTPUT_DIR}" "${VAR_DIR}"; do
+        if [ ! -d "${dir}" ]; then
+            dirs_ok=0
+            break
+        fi
+    done
+    if [ ${dirs_ok} -eq 1 ]; then
+        echo "[OK]"
+        health_score=$((health_score + 1))
+    else
+        echo "[ERROR]"
+    fi
+
+    # 3. Component modules
+    printf "3. Core Modules: "
+    local modules_ok=1
+    for module in "${DATAFETCHER_MODULE}" "${VALIDATOR_MODULE}" "${SORTER_MODULE}" \
+                  "${APPLY_MODULE}" "${LOGGER_MODULE}" "${TUI_MODULE}"; do
+        if [ ! -f "${module}" ]; then
+            modules_ok=0
+            break
+        fi
+    done
+    if [ ${modules_ok} -eq 1 ]; then
+        echo "[OK]"
+        health_score=$((health_score + 1))
+    else
+        echo "[ERROR]"
+    fi
+
+    # 4. Python runtime
+    printf "4. Python Runtime: "
+    if command -v python3 >/dev/null 2>&1; then
+        local py_version=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[:2])))' 2>/dev/null)
+        if [ -n "${py_version}" ]; then
+            echo "[OK] v${py_version}"
+            health_score=$((health_score + 1))
+        else
+            echo "[WARNING] Unknown version"
+        fi
+    else
+        echo "[ERROR] Not found"
+    fi
+
+    # 5. Required tools
+    printf "5. Required Tools: "
+    local tools_missing=""
+    for tool in jq curl; do
+        if ! command -v "${tool}" >/dev/null 2>&1; then
+            tools_missing="${tools_missing} ${tool}"
+        fi
+    done
+    if [ -z "${tools_missing}" ]; then
+        echo "[OK]"
+        health_score=$((health_score + 1))
+    else
+        echo "[ERROR] Missing:${tools_missing}"
+    fi
+
+    # 6. CLI tools
+    printf "6. CLI Tools: "
+    local has_zbx=0
+    local has_td=0
+    command -v zbx >/dev/null 2>&1 && has_zbx=1
+    command -v topdesk >/dev/null 2>&1 && has_td=1
+
+    if [ ${has_zbx} -eq 1 ] && [ ${has_td} -eq 1 ]; then
+        echo "[OK] Both available"
+        health_score=$((health_score + 1))
+    elif [ ${has_zbx} -eq 1 ] || [ ${has_td} -eq 1 ]; then
+        echo "[WARNING] Partial"
+    else
+        echo "[INFO] Using API fallback"
+    fi
+
+    # 7. Disk space
+    printf "7. Disk Space: "
+    local available_space=$(df -k "${PROJECT_ROOT}" | awk 'NR==2 {print int($4/1024)}')
+    if [ ${available_space} -gt 100 ]; then
+        echo "[OK] ${available_space}MB free"
+        health_score=$((health_score + 1))
+    else
+        echo "[WARNING] Low: ${available_space}MB"
+    fi
+
+    # 8. Log system
+    printf "8. Logging System: "
+    if [ -w "${LOG_FILE}" ] || [ -w "$(dirname "${LOG_FILE}")" ]; then
+        echo "[OK]"
+        health_score=$((health_score + 1))
+    else
+        echo "[ERROR] Not writable"
+    fi
+
+    # 9. Cache status
+    printf "9. Cache Status: "
+    if [ -d "${DEFAULT_CACHE_DIR}" ]; then
+        local cache_files=$(find "${DEFAULT_CACHE_DIR}" -type f 2>/dev/null | wc -l | tr -d ' ')
+        echo "[OK] ${cache_files} files"
+        health_score=$((health_score + 1))
+    else
+        echo "[WARNING] Not initialized"
+    fi
+
+    # 10. Last sync status
+    printf "10. Last Sync: "
+    if [ -f "${OUTPUT_DIR}/apply/results.json" ]; then
+        local last_mod=$(stat -f %m "${OUTPUT_DIR}/apply/results.json" 2>/dev/null || \
+                        stat -c %Y "${OUTPUT_DIR}/apply/results.json" 2>/dev/null)
+        if [ -n "${last_mod}" ]; then
+            local age_hours=$(( ($(date +%s) - last_mod) / 3600 ))
+            echo "${age_hours}h ago"
+            health_score=$((health_score + 1))
+        else
+            echo "Unknown"
+        fi
+    else
+        echo "Never run"
+    fi
+
+    # Overall score
+    echo ""
+    echo "Overall Health Score: ${health_score}/${max_score}"
+    echo ""
+
+    # Health status interpretation
+    if [ ${health_score} -ge 9 ]; then
+        echo "Status: EXCELLENT - System fully operational"
+    elif [ ${health_score} -ge 7 ]; then
+        echo "Status: GOOD - System operational"
+    elif [ ${health_score} -ge 5 ]; then
+        echo "Status: FAIR - Some issues detected"
+    else
+        echo "Status: POOR - Multiple issues require attention"
+    fi
+
+    echo ""
+
+    # Recommendations
+    if [ ${health_score} -lt ${max_score} ]; then
+        echo "Recommendations:"
+
+        if [ ! -f "${CONFIG_FILE}" ]; then
+            echo "  - Run 'validate' to create default configuration"
+        fi
+
+        if [ ${modules_ok} -eq 0 ]; then
+            echo "  - Check module files in ${LIB_DIR}"
+        fi
+
+        if [ -n "${tools_missing}" ]; then
+            echo "  - Install missing tools:${tools_missing}"
+        fi
+
+        if [ ${has_zbx} -eq 0 ]; then
+            echo "  - Make sure zbx command is in your PATH"
+        fi
+
+        if [ ${has_td} -eq 0 ]; then
+            echo "  - Make sure topdesk command is in your PATH"
+        fi
+
+        echo ""
+    fi
+
+    log_info "Health check completed (score: ${health_score}/${max_score})"
+    return 0
+}
+
+# Command: clean
+cmd_clean() {
+    log_info "Cleaning temporary and cache files..."
+
+    echo -n "Clean cache files? [y/N] "
+    read -r response
+    case "${response}" in
+        [yY][eE][sS]|[yY])
+            rm -rf "${DEFAULT_CACHE_DIR}"/*
+            echo "Cache cleaned"
+            ;;
+    esac
+
+    echo -n "Clean temporary files? [y/N] "
+    read -r response
+    case "${response}" in
+        [yY][eE][sS]|[yY])
+            rm -rf "${TMP_DIR}"/*
+            echo "Temporary files cleaned"
+            ;;
+    esac
+
+    echo -n "Clean output files? [y/N] "
+    read -r response
+    case "${response}" in
+        [yY][eE][sS]|[yY])
+            rm -f "${OUTPUT_DIR}"/*.json
+            rm -rf "${OUTPUT_DIR}/differences"/*
+            rm -rf "${OUTPUT_DIR}/apply"/*
+            echo "Output files cleaned"
+            ;;
+    esac
+
+    log_info "Cleanup completed"
+    return 0
+}
+
+# Main execution
+main() {
+    # Set up signal handlers - moved after environment init
+    # trap cleanup EXIT INT TERM
+
+    # Parse global options
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            -c|--config)
+                CONFIG_FILE="$2"
+                shift 2
+                ;;
+            -o|--output)
+                OUTPUT_DIR="$2"
+                shift 2
+                ;;
+            -l|--log)
+                LOG_FILE="$2"
+                shift 2
+                ;;
+            -v|--verbose)
+                VERBOSE=1
+                shift
+                ;;
+            -d|--debug)
+                DEBUG=1
+                VERBOSE=1
+                set -x  # Enable shell debugging
+                shift
+                ;;
+            -n|--dry-run)
+                DRY_RUN=1
+                shift
+                ;;
+            -f|--force)
+                FORCE=1
+                shift
+                ;;
+            -i|--interactive)
+                INTERACTIVE=1
+                shift
+                ;;
+            -b|--batch)
+                INTERACTIVE=0
+                shift
+                ;;
+            -h|--help)
+                usage
+                exit 0
+                ;;
+            -V|--version)
+                version
+                exit 0
+                ;;
+            -*)
+                echo "Unknown option: $1" >&2
+                usage
+                exit 1
+                ;;
+            *)
+                break
+                ;;
+        esac
+    done
+
+    # Check for command
+    if [ $# -eq 0 ]; then
+        usage
+        exit 1
+    fi
+
+    COMMAND="$1"
+    shift
+
+    # Initialize environment
+    init_environment || exit 1
+
+    # Set up signal handlers after environment is ready
+    trap cleanup EXIT INT TERM
+
+    # Execute command
+    case "${COMMAND}" in
+        fetch)
+            cmd_fetch "$@"
+            ;;
+        diff)
+            cmd_diff "$@"
+            ;;
+        tui)
+            cmd_tui "$@"
+            ;;
+        apply)
+            cmd_apply "$@"
+            ;;
+        sync)
+            cmd_sync "$@"
+            ;;
+        validate)
+            cmd_validate "$@"
+            ;;
+        health)
+            cmd_health "$@"
+            ;;
+        status)
+            cmd_status "$@"
+            ;;
+        report)
+            cmd_report "$@"
+            ;;
+        clean)
+            cmd_clean "$@"
+            ;;
+        *)
+            echo "Unknown command: ${COMMAND}" >&2
+            usage
+            exit 1
+            ;;
+    esac
+
+    exit $?
+}
+
+# Run main function with all arguments
+main "$@"

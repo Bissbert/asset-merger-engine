@@ -1,0 +1,16 @@
+{
+  "zabbix": {
+    "url": "https://zabbix.example.com",
+    "username": "admin",
+    "password": "ENCRYPTED_OR_FROM_ENV"
+  },
+  "topdesk": {
+    "url": "https://topdesk.example.com",
+    "username": "api_user",
+    "api_key": "FROM_ENV_VARIABLE"
+  },
+  "output_dir": "./output",
+  "cache_dir": "./cache",
+  "required_tools": ["zbx", "topdesk"],
+  "check_connectivity": true
+}

@@ -1,0 +1,32 @@
+[2025-09-26 11:37:07.367] [INFO] [SYSTEM] Merger logger initialized
+[2025-09-26 11:37:07.367] [DEBUG] [SYSTEM] This is a DEBUG message - diagnostic info
+[2025-09-26 11:37:07.367] [INFO] [SYSTEM] This is an INFO message - normal operation
+[2025-09-26 11:37:07.367] [WARNING] [SYSTEM] This is a WARNING message - potential issue
+[2025-09-26 11:37:07.367] [ERROR] [SYSTEM] This is an ERROR message - something failed
+[2025-09-26 11:37:07.367] [CRITICAL] [SYSTEM] This is a CRITICAL message: Critical system failure simulation
+[2025-09-26 11:37:07.873] [INFO] [DATAFETCHER] Starting data retrieval process
+[2025-09-26 11:37:08.376] [INFO] [DATAFETCHER] Retrieved 125 assets from Zabbix completed in 0.502s
+[2025-09-26 11:37:08.682] [WARNING] [DATAFETCHER] Topdesk asset retrieval: 83/99 processed (83.8% success), 16 failed
+[2025-09-26 11:37:08.684] [ERROR] [DATAFETCHER] Failed to connect to Topdesk: Connection timeout to Topdesk API
+[2025-09-26 11:37:09.189] [INFO] [DIFFER] Starting asset comparison
+[2025-09-26 11:37:09.190] [DEBUG] [DIFFER] Difference found in asset001
+[2025-09-26 11:37:09.190] [DEBUG] [DIFFER] Difference found in asset002
+[2025-09-26 11:37:09.190] [DEBUG] [DIFFER] Difference found in asset003
+[2025-09-26 11:37:09.190] [INFO] [DIFFER] Comparison completed: 3 differences found
+[2025-09-26 11:37:09.696] [INFO] [TUIOPERATOR] TUI session started
+[2025-09-26 11:37:09.799] [INFO] [TUIOPERATOR] User action: Selected Zabbix value
+[2025-09-26 11:37:09.905] [INFO] [TUIOPERATOR] User action: Selected Topdesk value
+[2025-09-26 11:37:10.012] [INFO] [TUIOPERATOR] User action: Entered custom value
+[2025-09-26 11:37:10.116] [INFO] [TUIOPERATOR] User action: Skipped field
+[2025-09-26 11:37:10.116] [INFO] [TUIOPERATOR] TUI session completed
+[2025-09-26 11:37:10.621] [INFO] [APPLIER] Starting change application
+[2025-09-26 11:37:10.622] [INFO] [APPLIER] Successfully updated asset001
+[2025-09-26 11:37:10.677] [INFO] [APPLIER] Successfully updated asset002
+[2025-09-26 11:37:10.732] [ERROR] [APPLIER] Failed to update asset003: Permission denied
+[2025-09-26 11:37:10.787] [INFO] [APPLIER] Successfully updated asset004
+[2025-09-26 11:37:10.842] [ERROR] [APPLIER] Failed to update asset005: Asset not found
+[2025-09-26 11:37:10.897] [WARNING] [APPLIER] Change application: 3/5 processed (60.0% success), 2 failed
+[2025-09-26 11:37:11.399] [INFO] [VALIDATOR] Starting validation process
+[2025-09-26 11:37:11.400] [DEBUG] [VALIDATOR] Checking data integrity
+[2025-09-26 11:37:11.400] [WARNING] [VALIDATOR] Invalid data format detected
+[2025-09-26 11:37:11.400] [INFO] [VALIDATOR] Validation completed

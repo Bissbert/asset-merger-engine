@@ -1,0 +1,30 @@
+{
+  "ip_address": {
+    "zabbix": "10.0.0.1",
+    "topdesk": "10.0.0.9"
+  },
+  "hostname": {
+    "zabbix": "server01.example.com",
+    "topdesk": "server01.example.com"
+  },
+  "location": {
+    "zabbix": "Building A, Room 101",
+    "topdesk": "Building A, Room 102"
+  },
+  "owner": {
+    "zabbix": "",
+    "topdesk": "Alice Smith"
+  },
+  "department": {
+    "zabbix": "IT Operations",
+    "topdesk": "IT Support"
+  },
+  "status": {
+    "zabbix": "active",
+    "topdesk": "active"
+  },
+  "last_updated": {
+    "zabbix": "2024-01-15",
+    "topdesk": "2024-01-20"
+  }
+}

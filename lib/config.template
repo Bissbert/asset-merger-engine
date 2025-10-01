@@ -1,0 +1,119 @@
+# Configuration template for topdesk-zbx-merger data fetcher
+# Copy this file to ~/.config/topdesk-zbx-merger/merger.conf and update with your settings
+#
+# IMPORTANT: This tool requires the following CLI tools to be installed:
+# - zbx-cli (or zbx/zabbix-cli): Install with 'pip install zbx-cli'
+#   Documentation: https://github.com/unioslo/zabbix-cli
+# - topdesk-cli (or topdesk/td-cli): Check your Topdesk documentation for installation
+
+# Zabbix Configuration
+# --------------------
+ZABBIX_SERVER="https://zabbix.example.com"
+ZABBIX_USER="your_zabbix_username"
+ZABBIX_PASS="your_zabbix_password"
+
+# Optional: Use existing zbx-cli config file instead
+# ZABBIX_CONFIG="${HOME}/.config/zbx-cli/config.ini"
+
+# Optional: Specify the zbx-cli command name if not in PATH
+# ZBX_CLI_COMMAND="/usr/local/bin/zbx-cli"
+
+# Topdesk Configuration
+# ---------------------
+TOPDESK_URL="https://topdesk.example.com"
+
+# Option 1: API Key authentication (recommended)
+TOPDESK_API_KEY="your_topdesk_api_key"
+
+# Option 2: Username/Password authentication
+# TOPDESK_USER="your_topdesk_username"
+# TOPDESK_PASS="your_topdesk_password"
+
+# Optional: Use existing topdesk-cli config file instead
+# TOPDESK_CONFIG="${HOME}/.config/topdesk-cli/config.ini"
+
+# Optional: Specify the topdesk-cli command name if not in PATH
+# TOPDESK_CLI_COMMAND="/usr/local/bin/topdesk-cli"
+
+# General Settings
+# ----------------
+
+# Log file location
+LOG_FILE="/tmp/topdesk-zbx-merger/merger.log"
+
+# Log level (DEBUG, INFO, WARNING, ERROR)
+LOG_LEVEL="INFO"
+
+# Enable debug output
+# DEBUG=1
+
+# Cache Configuration
+# -------------------
+
+# Cache directory
+CACHE_DIR="/tmp/topdesk-zbx-merger/cache"
+
+# Cache TTL in seconds (default: 300 = 5 minutes)
+CACHE_TTL=300
+
+# Authentication cache TTL in seconds (default: 3600 = 1 hour)
+AUTH_CACHE_TTL=3600
+
+# Retry Configuration
+# -------------------
+
+# Maximum number of retry attempts
+MAX_RETRIES=3
+
+# Initial retry delay in seconds
+RETRY_DELAY=2
+
+# CLI Tool Settings
+# -----------------
+
+# Zabbix CLI timeout in seconds
+ZBX_TIMEOUT=30
+
+# Topdesk CLI timeout in seconds
+TD_TIMEOUT=30
+
+# Output format (json, csv, xml)
+ZBX_OUTPUT_FORMAT="json"
+TD_OUTPUT_FORMAT="json"
+
+# Pagination settings
+TD_PAGE_SIZE=100
+
+# Asset Filtering
+# ---------------
+
+# Default Zabbix group to fetch assets from
+# Note: For zbx-cli, this should match a hostgroup name in Zabbix
+DEFAULT_ZABBIX_GROUP="Topdesk"
+
+# Default Zabbix tag to filter assets
+# Format depends on zbx-cli version (e.g., "tagname" or "tagname:value")
+# DEFAULT_ZABBIX_TAG="topdesk_sync"
+
+# Default Topdesk filter
+# DEFAULT_TOPDESK_FILTER="status=active"
+
+# Performance Settings
+# --------------------
+
+# Enable parallel fetching from both systems
+ENABLE_PARALLEL_FETCH=true
+
+# Maximum pages to fetch from Topdesk (prevent infinite loops)
+MAX_TOPDESK_PAGES=100
+
+# Field Mapping (optional)
+# ------------------------
+# Define how fields should be mapped between systems
+# Format: ZABBIX_FIELD:TOPDESK_FIELD
+
+# Example mappings:
+# FIELD_MAP_HOSTNAME="host:name"
+# FIELD_MAP_IP="interfaces.0.ip:ipAddress"
+# FIELD_MAP_LOCATION="inventory.location:location"
+# FIELD_MAP_SERIAL="inventory.serialno_a:serialNumber"

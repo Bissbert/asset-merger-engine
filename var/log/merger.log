@@ -1,0 +1,197 @@
+[2025-09-26 10:03:53] [INFO] Starting validation...
+[2025-09-26 10:03:53] [INFO] Validating environment...
+[2025-09-26 10:03:53] [ERROR] Required command 'zbx-cli' not found in PATH
+[2025-09-26 12:40:56] [DEBUG] Cleaning up (exit code: 0)...
+[2025-09-26 12:40:56] [INFO] Cleanup completed
+[2025-09-26 12:41:11] [INFO] Initializing environment...
+[2025-09-26 12:41:11] [INFO] Environment initialized successfully
+[2025-09-26 12:41:11] [INFO] === Starting Validation ===
+[2025-09-26 12:41:11] [DEBUG] Cleaning up (exit code: 1)...
+[2025-09-26 12:41:11] [INFO] Cleanup completed
+[2025-09-26 12:43:16] [INFO] Initializing environment...
+[2025-09-26 12:43:16] [INFO] Environment initialized successfully
+[2025-09-26 12:43:16] [INFO] === Starting Validation ===
+[2025-09-26 12:43:16] [DEBUG] Cleaning up (exit code: 1)...
+[2025-09-26 12:43:16] [INFO] Cleanup completed
+[2025-09-26 12:43:23] [INFO] Initializing environment...
+[2025-09-26 12:43:23] [INFO] Environment initialized successfully
+[2025-09-26 12:43:23] [INFO] === Starting Validation ===
+[2025-09-26 12:43:23] [DEBUG] Cleaning up (exit code: 1)...
+[2025-09-26 12:43:23] [INFO] Cleanup completed
+[2025-09-26 12:43:27] [DEBUG] Cleaning up (exit code: 0)...
+[2025-09-26 12:43:27] [INFO] Cleanup completed
+[2025-09-26 12:43:48] [INFO] Initializing environment...
+[2025-09-26 12:43:48] [INFO] Environment initialized successfully
+[2025-09-26 12:43:48] [INFO] === Starting Validation ===
+[2025-09-26 12:43:57] [INFO] Initializing environment...
+[2025-09-26 12:43:57] [INFO] Environment initialized successfully
+[2025-09-26 12:43:57] [INFO] === Starting Validation ===
+[2025-09-26 12:45:24] [INFO] Initializing environment...
+[2025-09-26 12:45:24] [INFO] Environment initialized successfully
+[2025-09-26 12:45:24] [INFO] === Starting Validation ===
+[2025-09-26 12:45:48] [INFO] Initializing environment...
+[2025-09-26 12:45:48] [INFO] Environment initialized successfully
+[2025-09-26 12:45:48] [INFO] === Starting Validation ===
+[2025-09-26 12:49:47] [INFO] Initializing environment...
+[2025-09-26 12:49:47] [INFO] Environment initialized successfully
+[2025-09-26 12:49:47] [INFO] === Starting Validation ===
+[2025-09-26 12:50:47] [INFO] Initializing environment...
+[2025-09-26 12:50:47] [INFO] Environment initialized successfully
+[2025-09-26 12:50:47] [INFO] === Starting Validation ===
+[2025-09-26 12:51:11] [INFO] Initializing environment...
+[2025-09-26 12:51:19] [INFO] Initializing environment...
+[2025-09-26 12:51:19] [INFO] Environment initialized successfully
+[2025-09-26 12:51:19] [INFO] === Starting Validation ===
+[2025-09-26 12:51:19] [INFO] Cleanup completed
+[2025-09-27 09:25:05] [INFO] Initializing environment...
+[2025-09-27 09:25:05] [INFO] Environment initialized successfully
+[2025-09-27 09:25:05] [INFO] === Running Comprehensive Health Check ===
+[2025-09-27 09:25:12] [INFO] Initializing environment...
+[2025-09-27 09:25:12] [INFO] Environment initialized successfully
+[2025-09-27 09:25:12] [INFO] === Starting Validation ===
+[2025-09-27 09:25:18] [INFO] Initializing environment...
+[2025-09-27 09:25:31] [INFO] Initializing environment...
+[2025-09-27 09:25:31] [INFO] Environment initialized successfully
+[2025-09-27 09:25:42] [INFO] Initializing environment...
+[2025-09-27 09:25:42] [INFO] Environment initialized successfully
+[2025-09-27 09:25:42] [INFO] === Running Comprehensive Health Check ===
+[2025-09-27 09:25:59] [INFO] Initializing environment...
+[2025-09-27 09:25:59] [INFO] Environment initialized successfully
+[2025-09-27 09:25:59] [INFO] === Running Comprehensive Health Check ===
+[2025-09-27 09:27:42] [INFO] Initializing environment...
+[2025-09-27 09:27:42] [INFO] Environment initialized successfully
+[2025-09-27 09:27:42] [INFO] === Running Comprehensive Health Check ===
+[2025-09-27 09:28:21] [INFO] Initializing environment...
+[2025-09-27 09:28:21] [INFO] Environment initialized successfully
+[2025-09-27 09:28:21] [INFO] === Running Comprehensive Health Check ===
+[2025-09-27 09:28:27] [INFO] Initializing environment...
+[2025-09-27 09:28:27] [INFO] Environment initialized successfully
+[2025-09-27 09:28:27] [INFO] === Running Comprehensive Health Check ===
+[2025-09-27 09:28:59] [INFO] Initializing environment...
+[2025-09-27 09:28:59] [INFO] Environment initialized successfully
+[2025-09-27 09:28:59] [INFO] === Running Comprehensive Health Check ===
+[2025-09-27 09:29:04] [INFO] Initializing environment...
+[2025-09-27 09:29:04] [INFO] Environment initialized successfully
+[2025-09-27 09:29:04] [INFO] === Running Comprehensive Health Check ===
+[2025-09-27 09:29:41] [INFO] Initializing environment...
+[2025-09-27 09:29:41] [INFO] Environment initialized successfully
+[2025-09-27 09:29:41] [INFO] === Running Comprehensive Health Check ===
+[2025-09-27 09:29:41] [INFO] Health check completed (score: 7/10)
+[2025-09-27 09:30:10] [INFO] Initializing environment...
+[2025-09-27 09:30:10] [INFO] Environment initialized successfully
+[2025-09-27 09:30:10] [INFO] === Starting Validation ===
+[2025-09-27 09:30:10] [DEBUG] Starting cmd_validate function
+[2025-09-27 09:30:10] [DEBUG] About to check configuration
+[2025-09-27 09:30:10] [INFO] Validating configuration...
+[2025-09-27 09:30:10] [ERROR] Configuration file not found: /Users/fabian/sources/posix/topdesk-zbx-merger/etc/merger.conf
+[2025-09-27 09:30:10] [INFO] Default configuration created: /Users/fabian/sources/posix/topdesk-zbx-merger/etc/merger.conf
+[2025-09-27 09:30:14] [INFO] Initializing environment...
+[2025-09-27 09:30:14] [INFO] Environment initialized successfully
+[2025-09-27 09:30:14] [INFO] === Running Comprehensive Health Check ===
+[2025-09-27 09:30:14] [INFO] Health check completed (score: 8/10)
+[2025-09-27 10:06:26] [INFO] Initializing environment...
+[2025-09-27 10:06:26] [INFO] Environment initialized successfully
+[2025-09-27 10:06:26] [INFO] === Running Comprehensive Health Check ===
+[2025-09-27 10:06:26] [INFO] Health check completed (score: 8/10)
+[2025-09-27 10:09:40] [INFO] Initializing environment...
+[2025-09-27 10:09:40] [INFO] Environment initialized successfully
+[2025-09-27 10:09:40] [INFO] === Starting Validation ===
+[2025-09-27 10:09:40] [DEBUG] Starting cmd_validate function
+[2025-09-27 10:09:40] [DEBUG] About to check configuration
+[2025-09-27 10:09:40] [INFO] Validating configuration...
+[2025-09-27 10:09:40] [INFO] Configuration validated successfully
+[2025-09-27 10:09:40] [DEBUG] Configuration check completed
+[2025-09-27 10:09:40] [INFO] CLI tools not found - will use API fallback methods
+[2025-09-27 10:09:41] [INFO] Validation completed
+[2025-09-27 10:10:33] [INFO] Initializing environment...
+[2025-09-27 10:10:33] [INFO] Environment initialized successfully
+[2025-09-27 10:10:33] [INFO] === Starting Validation ===
+[2025-09-27 10:10:33] [DEBUG] Starting cmd_validate function
+[2025-09-27 10:10:33] [DEBUG] About to check configuration
+[2025-09-27 10:10:33] [INFO] Validating configuration...
+[2025-09-27 10:10:33] [INFO] Configuration validated successfully
+[2025-09-27 10:10:33] [DEBUG] Configuration check completed
+[2025-09-27 10:10:33] [INFO] Validation completed
+[2025-09-27 10:12:37] [INFO] Initializing environment...
+[2025-09-27 10:12:37] [INFO] Environment initialized successfully
+[2025-09-27 10:12:37] [INFO] === Starting Validation ===
+[2025-09-27 10:12:37] [DEBUG] Starting cmd_validate function
+[2025-09-27 10:12:37] [DEBUG] About to check configuration
+[2025-09-27 10:12:37] [INFO] Validating configuration...
+[2025-09-27 10:12:37] [INFO] Configuration validated successfully
+[2025-09-27 10:12:37] [DEBUG] Configuration check completed
+[2025-09-27 10:12:38] [INFO] Validation completed
+[2025-09-27 10:12:38] [INFO] Initializing environment...
+[2025-09-27 10:12:38] [INFO] Environment initialized successfully
+[2025-09-27 10:12:38] [INFO] === Running Comprehensive Health Check ===
+[2025-09-27 10:12:38] [INFO] Health check completed (score: 9/10)
+[2025-09-30 14:01:55] [INFO] Initializing environment...
+[2025-09-30 14:01:55] [INFO] Environment initialized successfully
+[2025-09-30 14:01:55] [INFO] === Starting Validation ===
+[2025-09-30 14:01:55] [DEBUG] Starting cmd_validate function
+[2025-09-30 14:01:55] [DEBUG] About to check configuration
+[2025-09-30 14:01:55] [INFO] Validating configuration...
+[2025-09-30 14:01:55] [INFO] Configuration validated successfully
+[2025-09-30 14:01:55] [DEBUG] Configuration check completed
+[2025-09-30 14:01:55] [INFO] CLI tools not found - will use API fallback methods
+[2025-09-30 14:01:56] [INFO] Validation completed
+[2025-09-30 14:02:38] [INFO] Initializing environment...
+[2025-09-30 14:02:38] [INFO] Environment initialized successfully
+[2025-09-30 14:02:38] [INFO] === Running Comprehensive Health Check ===
+[2025-09-30 14:02:38] [INFO] Health check completed (score: 8/10)
+[2025-09-30 14:03:22] [INFO] Initializing environment...
+[2025-09-30 14:03:22] [INFO] Environment initialized successfully
+[2025-09-30 14:03:22] [INFO] === Starting Validation ===
+[2025-09-30 14:03:22] [DEBUG] Starting cmd_validate function
+[2025-09-30 14:03:22] [DEBUG] About to check configuration
+[2025-09-30 14:03:22] [INFO] Validating configuration...
+[2025-09-30 14:03:22] [INFO] Configuration validated successfully
+[2025-09-30 14:03:22] [DEBUG] Configuration check completed
+[2025-09-30 14:03:23] [INFO] CLI tools not found - will use API fallback methods
+[2025-09-30 14:03:23] [INFO] Validation completed
+[2025-09-30 14:03:23] [INFO] Initializing environment...
+[2025-09-30 14:03:23] [INFO] Environment initialized successfully
+[2025-09-30 14:03:23] [INFO] === Running Comprehensive Health Check ===
+[2025-09-30 14:03:23] [INFO] Health check completed (score: 8/10)
+[2025-09-30 14:04:24] [INFO] Initializing environment...
+[2025-09-30 14:04:24] [INFO] Environment initialized successfully
+[2025-09-30 14:04:24] [INFO] === Starting Validation ===
+[2025-09-30 14:04:24] [DEBUG] Starting cmd_validate function
+[2025-09-30 14:04:24] [DEBUG] About to check configuration
+[2025-09-30 14:04:24] [INFO] Validating configuration...
+[2025-09-30 14:04:24] [INFO] Configuration validated successfully
+[2025-09-30 14:04:24] [DEBUG] Configuration check completed
+[2025-09-30 14:04:24] [INFO] CLI tools not found - will use API fallback methods
+[2025-09-30 14:04:24] [INFO] Validation completed
+[2025-09-30 14:04:24] [INFO] Initializing environment...
+[2025-09-30 14:04:24] [INFO] Environment initialized successfully
+[2025-09-30 14:04:24] [INFO] === Running Comprehensive Health Check ===
+[2025-09-30 14:04:24] [INFO] Health check completed (score: 8/10)
+[2025-09-30 14:05:32] [INFO] Initializing environment...
+[2025-09-30 14:05:32] [INFO] Environment initialized successfully
+[2025-09-30 14:05:32] [INFO] === Starting Validation ===
+[2025-09-30 14:05:32] [DEBUG] Starting cmd_validate function
+[2025-09-30 14:05:32] [DEBUG] About to check configuration
+[2025-09-30 14:05:32] [INFO] Validating configuration...
+[2025-09-30 14:05:32] [INFO] Configuration validated successfully
+[2025-09-30 14:05:32] [DEBUG] Configuration check completed
+[2025-09-30 14:05:32] [INFO] CLI tools not found - will use API fallback methods
+[2025-09-30 14:05:32] [INFO] Validation completed
+[2025-09-30 14:05:32] [INFO] Initializing environment...
+[2025-09-30 14:05:32] [INFO] Environment initialized successfully
+[2025-09-30 14:05:32] [INFO] === Running Comprehensive Health Check ===
+[2025-09-30 14:05:32] [INFO] Health check completed (score: 8/10)
+[2025-09-30 14:05:32] [INFO] Initializing environment...
+[2025-09-30 14:05:32] [INFO] Environment initialized successfully
+[2025-09-30 14:05:32] [INFO] === Starting Validation ===
+[2025-09-30 14:05:32] [DEBUG] Starting cmd_validate function
+[2025-09-30 14:05:32] [DEBUG] About to check configuration
+[2025-09-30 14:05:32] [INFO] Validating configuration...
+[2025-09-30 14:05:32] [INFO] Configuration validated successfully
+[2025-09-30 14:05:32] [DEBUG] Configuration check completed
+[2025-09-30 14:05:32] [INFO] CLI tools not found - will use API fallback methods
+[2025-09-30 14:05:32] [INFO] Validation completed
+[2025-09-30 14:05:32] [INFO] Initializing environment...
+[2025-09-30 14:05:32] [INFO] Environment initialized successfully
+[2025-09-30 14:05:32] [INFO] === Running Comprehensive Health Check ===
+[2025-09-30 14:05:32] [INFO] Health check completed (score: 8/10)

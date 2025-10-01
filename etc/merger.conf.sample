@@ -1,0 +1,188 @@
+# topdesk-zbx-merger configuration file
+# Copy this file to merger.conf and update with your values
+
+# Zabbix Configuration
+# --------------------
+# Zabbix API endpoint URL
+ZABBIX_URL="https://zabbix.example.com/api_jsonrpc.php"
+
+# Zabbix authentication credentials
+ZABBIX_USER="admin"
+ZABBIX_PASSWORD="changeme"
+
+# Optional: Use API token instead of user/password
+# ZABBIX_API_TOKEN=""
+
+# Zabbix query parameters
+ZABBIX_GROUP_FILTER=""  # Filter by host group
+ZABBIX_TAG_FILTER=""    # Filter by tag
+ZABBIX_TIMEOUT="30"     # API timeout in seconds
+
+# Topdesk Configuration
+# ---------------------
+# Topdesk API endpoint URL
+TOPDESK_URL="https://topdesk.example.com/tas/api"
+
+# Topdesk authentication credentials
+TOPDESK_USER="apiuser"
+TOPDESK_PASSWORD="changeme"
+
+# Optional: Use API token instead of user/password
+# TOPDESK_API_TOKEN=""
+
+# Topdesk parameters
+TOPDESK_TIMEOUT="30"    # API timeout in seconds
+TOPDESK_PAGE_SIZE="100" # Items per page
+
+# Merge Settings
+# -------------
+# Merge strategy: update|create|sync
+# - update: Only update existing assets
+# - create: Only create new assets
+# - sync: Full synchronization (create + update)
+MERGE_STRATEGY="update"
+
+# Conflict resolution: zabbix|topdesk|manual
+# - zabbix: Zabbix data takes precedence
+# - topdesk: Topdesk data takes precedence
+# - manual: Prompt for each conflict
+CONFLICT_RESOLUTION="zabbix"
+
+# Batch processing
+BATCH_SIZE="100"        # Number of items to process at once
+BATCH_DELAY="1"         # Delay between batches in seconds
+
+# Field Mappings
+# -------------
+# Enable/disable specific field mappings
+MAP_HOST_TO_ASSET="true"
+MAP_IP_TO_IP="true"
+MAP_LOCATION_TO_LOCATION="true"
+MAP_INVENTORY_TO_CUSTOM="true"
+MAP_TAGS_TO_CATEGORIES="false"
+
+# Custom field mappings (JSON format)
+# CUSTOM_FIELD_MAP='{"zabbix_field":"topdesk_field"}'
+
+# Processing Options
+# -----------------
+# Enable caching for API responses
+ENABLE_CACHING="true"
+CACHE_TTL="3600"        # Cache time-to-live in seconds
+
+# Retry configuration
+MAX_RETRIES="3"         # Maximum retry attempts
+RETRY_DELAY="5"         # Initial retry delay in seconds
+RETRY_BACKOFF="2"       # Backoff multiplier
+
+# Error handling
+CONTINUE_ON_ERROR="true"    # Continue processing on errors
+ERROR_THRESHOLD="10"        # Stop if error count exceeds threshold
+
+# Output Options
+# -------------
+# Output format: json|csv|xml
+OUTPUT_FORMAT="json"
+
+# Report generation
+GENERATE_REPORTS="true"
+REPORT_FORMAT="html"    # html|pdf|text|json
+REPORT_RECIPIENTS=""    # Email addresses (comma-separated)
+
+# File paths
+OUTPUT_DIR="${PROJECT_ROOT}/output"
+PROCESSED_DIR="${OUTPUT_DIR}/processed"
+FAILED_DIR="${OUTPUT_DIR}/failed"
+REPORTS_DIR="${OUTPUT_DIR}/reports"
+
+# Logging Options
+# --------------
+# Log level: ERROR|WARNING|INFO|DEBUG
+LOG_LEVEL="INFO"
+
+# Log file settings
+LOG_FILE="${PROJECT_ROOT}/var/log/merger.log"
+LOG_MAX_SIZE="10485760" # 10MB in bytes
+LOG_ROTATE_COUNT="5"    # Number of rotated logs to keep
+
+# Syslog integration
+USE_SYSLOG="false"
+SYSLOG_FACILITY="local0"
+SYSLOG_TAG="topdesk-zbx-merger"
+
+# Performance Options
+# ------------------
+# Parallel processing
+ENABLE_PARALLEL="false"
+MAX_WORKERS="4"
+
+# Memory limits
+MAX_MEMORY_MB="512"
+
+# Network timeouts
+CONNECT_TIMEOUT="10"    # Connection timeout in seconds
+READ_TIMEOUT="30"        # Read timeout in seconds
+
+# Security Options
+# ---------------
+# SSL/TLS verification
+VERIFY_SSL="true"
+CA_CERT_PATH=""         # Path to CA certificate bundle
+
+# Proxy settings
+USE_PROXY="false"
+HTTP_PROXY=""
+HTTPS_PROXY=""
+NO_PROXY="localhost,127.0.0.1"
+
+# Scheduling Options
+# -----------------
+# Cron expression for scheduled runs (if using cron)
+# CRON_SCHEDULE="0 2 * * *"  # Daily at 2 AM
+
+# Lock file to prevent concurrent runs
+LOCK_FILE="${PROJECT_ROOT}/var/run/merger.lock"
+LOCK_TIMEOUT="3600"     # Maximum lock duration in seconds
+
+# Notification Options
+# -------------------
+# Send notifications on completion
+NOTIFY_ON_SUCCESS="false"
+NOTIFY_ON_FAILURE="true"
+NOTIFICATION_METHOD="email" # email|webhook|syslog
+
+# Email settings (if NOTIFICATION_METHOD="email")
+SMTP_SERVER="smtp.example.com"
+SMTP_PORT="587"
+SMTP_USER=""
+SMTP_PASSWORD=""
+SMTP_FROM="noreply@example.com"
+SMTP_TO="admin@example.com"
+
+# Webhook settings (if NOTIFICATION_METHOD="webhook")
+WEBHOOK_URL=""
+WEBHOOK_METHOD="POST"
+WEBHOOK_HEADERS=""
+
+# Advanced Options
+# ---------------
+# Dry run by default (safety feature)
+DEFAULT_DRY_RUN="false"
+
+# Data validation
+STRICT_VALIDATION="true"
+VALIDATE_IP_FORMAT="true"
+VALIDATE_HOSTNAME_FORMAT="true"
+VALIDATE_EMAIL_FORMAT="true"
+
+# Custom scripts
+PRE_SYNC_SCRIPT=""      # Script to run before sync
+POST_SYNC_SCRIPT=""     # Script to run after sync
+ERROR_HANDLER_SCRIPT="" # Script to run on errors
+
+# Debug Options
+# ------------
+DEBUG_MODE="false"
+DEBUG_OUTPUT_RAW="false"    # Output raw API responses
+DEBUG_KEEP_TEMP="false"      # Keep temporary files
+DEBUG_TRACE_CALLS="false"    # Trace all function calls
