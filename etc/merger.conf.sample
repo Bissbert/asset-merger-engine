@@ -89,19 +89,19 @@ GENERATE_REPORTS="true"
 REPORT_FORMAT="html"    # html|pdf|text|json
 REPORT_RECIPIENTS=""    # Email addresses (comma-separated)
 
-# File paths
-OUTPUT_DIR="${PROJECT_ROOT}/output"
-PROCESSED_DIR="${OUTPUT_DIR}/processed"
-FAILED_DIR="${OUTPUT_DIR}/failed"
-REPORTS_DIR="${OUTPUT_DIR}/reports"
+# File paths (these are set by the installation, do not modify)
+# OUTPUT_DIR is set by merger.sh based on installation location
+# PROCESSED_DIR="${OUTPUT_DIR}/processed"
+# FAILED_DIR="${OUTPUT_DIR}/failed"
+# REPORTS_DIR="${OUTPUT_DIR}/reports"
 
 # Logging Options
 # --------------
 # Log level: ERROR|WARNING|INFO|DEBUG
 LOG_LEVEL="INFO"
 
-# Log file settings
-LOG_FILE="${PROJECT_ROOT}/var/log/merger.log"
+# Log file settings (LOG_FILE is set by merger.sh based on installation location)
+# LOG_FILE="${PROJECT_ROOT}/var/log/merger.log"
 LOG_MAX_SIZE="10485760" # 10MB in bytes
 LOG_ROTATE_COUNT="5"    # Number of rotated logs to keep
 
@@ -140,8 +140,8 @@ NO_PROXY="localhost,127.0.0.1"
 # Cron expression for scheduled runs (if using cron)
 # CRON_SCHEDULE="0 2 * * *"  # Daily at 2 AM
 
-# Lock file to prevent concurrent runs
-LOCK_FILE="${PROJECT_ROOT}/var/run/merger.lock"
+# Lock file to prevent concurrent runs (LOCK_FILE is set by merger.sh)
+# LOCK_FILE="${PROJECT_ROOT}/var/run/merger.lock"
 LOCK_TIMEOUT="3600"     # Maximum lock duration in seconds
 
 # Notification Options

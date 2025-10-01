@@ -77,16 +77,55 @@ install: check
 	$(MKDIR) $(VARDIR)/output/processed
 	$(MKDIR) $(VARDIR)/output/failed
 	$(MKDIR) $(VARDIR)/output/reports
+	$(MKDIR) $(VARDIR)/output/differences
+	$(MKDIR) $(VARDIR)/output/apply
 	$(MKDIR) $(VARDIR)/tmp
+	$(MKDIR) $(VARDIR)/run
 	$(MKDIR) $(LOGDIR)
 
-	# Install scripts
-	$(INSTALL) -m 755 bin/merger.sh $(BINDIR)/asset-merger-engine
+	# Install VERSION file
+	$(INSTALL) -m 644 VERSION $(LIBDIR)/VERSION
 
-	# Install libraries
+	# Install main script with path substitution
+	@sed -e 's|^readonly SCRIPT_VERSION=.*|readonly SCRIPT_VERSION="$(shell cat VERSION)"|' \
+	     -e 's|^readonly PROJECT_ROOT=.*|readonly PROJECT_ROOT="$(PREFIX)"|' \
+	     -e 's|^readonly LIB_DIR=.*|readonly LIB_DIR="$(LIBDIR)"|' \
+	     -e 's|^readonly BIN_DIR=.*|readonly BIN_DIR="$(BINDIR)"|' \
+	     -e 's|^readonly ETC_DIR=.*|readonly ETC_DIR="$(ETCDIR)"|' \
+	     -e 's|^readonly VAR_DIR=.*|readonly VAR_DIR="$(VARDIR)"|' \
+	     -e 's|^readonly OUTPUT_DIR=.*|readonly OUTPUT_DIR="$(VARDIR)/output"|' \
+	     -e 's|^readonly TMP_DIR=.*|readonly TMP_DIR="$(VARDIR)/tmp"|' \
+	     -e 's|^readonly DEFAULT_CONFIG_FILE=.*|readonly DEFAULT_CONFIG_FILE="$(ETCDIR)/merger.conf"|' \
+	     -e 's|^readonly DEFAULT_LOG_DIR=.*|readonly DEFAULT_LOG_DIR="$(LOGDIR)"|' \
+	     -e 's|^readonly DEFAULT_CACHE_DIR=.*|readonly DEFAULT_CACHE_DIR="$(VARDIR)/cache"|' \
+	     -e 's|^readonly DEFAULT_RUN_DIR=.*|readonly DEFAULT_RUN_DIR="$(VARDIR)/run"|' \
+	     bin/merger.sh > $(BINDIR)/asset-merger-engine
+	$(CHMOD) 755 $(BINDIR)/asset-merger-engine
+
+	# Install shell script libraries
 	$(INSTALL) -m 644 lib/common.sh $(LIBDIR)/
 	$(INSTALL) -m 644 lib/zabbix.sh $(LIBDIR)/
 	$(INSTALL) -m 644 lib/topdesk.sh $(LIBDIR)/
+	$(INSTALL) -m 644 lib/datafetcher.sh $(LIBDIR)/
+	$(INSTALL) -m 755 lib/auth_manager.sh $(LIBDIR)/
+	$(INSTALL) -m 755 lib/check_cli_tools.sh $(LIBDIR)/
+	$(INSTALL) -m 755 lib/cli_wrapper.sh $(LIBDIR)/
+	$(INSTALL) -m 755 lib/zbx_cli_wrapper.sh $(LIBDIR)/
+	$(INSTALL) -m 755 lib/topdesk_cli_wrapper.sh $(LIBDIR)/
+
+	# Install Python modules
+	$(INSTALL) -m 644 lib/validator.py $(LIBDIR)/
+	$(INSTALL) -m 644 lib/sorter.py $(LIBDIR)/
+	$(INSTALL) -m 644 lib/apply.py $(LIBDIR)/
+	$(INSTALL) -m 644 lib/logger.py $(LIBDIR)/
+	$(INSTALL) -m 644 lib/differ.py $(LIBDIR)/
+	$(INSTALL) -m 644 lib/differ_utils.py $(LIBDIR)/
+
+	# Install TUI scripts
+	$(INSTALL) -m 755 bin/tui_operator.sh $(LIBDIR)/tui_operator.sh
+	$(INSTALL) -m 755 bin/tui_launcher.sh $(LIBDIR)/tui_launcher.sh
+	@if [ -f bin/tui_whiptail.sh ]; then $(INSTALL) -m 755 bin/tui_whiptail.sh $(LIBDIR)/; fi
+	@if [ -f bin/tui_pure_shell.sh ]; then $(INSTALL) -m 755 bin/tui_pure_shell.sh $(LIBDIR)/; fi
 
 	# Install configuration
 	@if [ ! -f $(ETCDIR)/merger.conf ]; then \
@@ -143,16 +182,55 @@ user-install: check
 	@mkdir -p $$HOME/.local/share/asset-merger-engine/output/processed
 	@mkdir -p $$HOME/.local/share/asset-merger-engine/output/failed
 	@mkdir -p $$HOME/.local/share/asset-merger-engine/output/reports
+	@mkdir -p $$HOME/.local/share/asset-merger-engine/output/differences
+	@mkdir -p $$HOME/.local/share/asset-merger-engine/output/apply
 	@mkdir -p $$HOME/.local/share/asset-merger-engine/tmp
 	@mkdir -p $$HOME/.local/share/asset-merger-engine/logs
+	@mkdir -p $$HOME/.local/share/asset-merger-engine/run
 
-	# Install scripts
-	$(INSTALL) -m 755 bin/merger.sh $$HOME/.local/bin/asset-merger-engine
+	# Install VERSION file
+	$(INSTALL) -m 644 VERSION $$HOME/.local/lib/asset-merger-engine/VERSION
 
-	# Install libraries
+	# Install main script with path substitution
+	@sed -e 's|^readonly SCRIPT_VERSION=.*|readonly SCRIPT_VERSION="$(shell cat VERSION)"|' \
+	     -e 's|^readonly PROJECT_ROOT=.*|readonly PROJECT_ROOT="'"$$HOME"'/.local"|' \
+	     -e 's|^readonly LIB_DIR=.*|readonly LIB_DIR="'"$$HOME"'/.local/lib/asset-merger-engine"|' \
+	     -e 's|^readonly BIN_DIR=.*|readonly BIN_DIR="'"$$HOME"'/.local/bin"|' \
+	     -e 's|^readonly ETC_DIR=.*|readonly ETC_DIR="'"$$HOME"'/.config/asset-merger-engine"|' \
+	     -e 's|^readonly VAR_DIR=.*|readonly VAR_DIR="'"$$HOME"'/.local/share/asset-merger-engine"|' \
+	     -e 's|^readonly OUTPUT_DIR=.*|readonly OUTPUT_DIR="'"$$HOME"'/.local/share/asset-merger-engine/output"|' \
+	     -e 's|^readonly TMP_DIR=.*|readonly TMP_DIR="'"$$HOME"'/.local/share/asset-merger-engine/tmp"|' \
+	     -e 's|^readonly DEFAULT_CONFIG_FILE=.*|readonly DEFAULT_CONFIG_FILE="'"$$HOME"'/.config/asset-merger-engine/merger.conf"|' \
+	     -e 's|^readonly DEFAULT_LOG_DIR=.*|readonly DEFAULT_LOG_DIR="'"$$HOME"'/.local/share/asset-merger-engine/logs"|' \
+	     -e 's|^readonly DEFAULT_CACHE_DIR=.*|readonly DEFAULT_CACHE_DIR="'"$$HOME"'/.local/share/asset-merger-engine/cache"|' \
+	     -e 's|^readonly DEFAULT_RUN_DIR=.*|readonly DEFAULT_RUN_DIR="'"$$HOME"'/.local/share/asset-merger-engine/run"|' \
+	     bin/merger.sh > $$HOME/.local/bin/asset-merger-engine
+	@chmod 755 $$HOME/.local/bin/asset-merger-engine
+
+	# Install shell script libraries
 	$(INSTALL) -m 644 lib/common.sh $$HOME/.local/lib/asset-merger-engine/
 	$(INSTALL) -m 644 lib/zabbix.sh $$HOME/.local/lib/asset-merger-engine/
 	$(INSTALL) -m 644 lib/topdesk.sh $$HOME/.local/lib/asset-merger-engine/
+	$(INSTALL) -m 644 lib/datafetcher.sh $$HOME/.local/lib/asset-merger-engine/
+	$(INSTALL) -m 755 lib/auth_manager.sh $$HOME/.local/lib/asset-merger-engine/
+	$(INSTALL) -m 755 lib/check_cli_tools.sh $$HOME/.local/lib/asset-merger-engine/
+	$(INSTALL) -m 755 lib/cli_wrapper.sh $$HOME/.local/lib/asset-merger-engine/
+	$(INSTALL) -m 755 lib/zbx_cli_wrapper.sh $$HOME/.local/lib/asset-merger-engine/
+	$(INSTALL) -m 755 lib/topdesk_cli_wrapper.sh $$HOME/.local/lib/asset-merger-engine/
+
+	# Install Python modules
+	$(INSTALL) -m 644 lib/validator.py $$HOME/.local/lib/asset-merger-engine/
+	$(INSTALL) -m 644 lib/sorter.py $$HOME/.local/lib/asset-merger-engine/
+	$(INSTALL) -m 644 lib/apply.py $$HOME/.local/lib/asset-merger-engine/
+	$(INSTALL) -m 644 lib/logger.py $$HOME/.local/lib/asset-merger-engine/
+	$(INSTALL) -m 644 lib/differ.py $$HOME/.local/lib/asset-merger-engine/
+	$(INSTALL) -m 644 lib/differ_utils.py $$HOME/.local/lib/asset-merger-engine/
+
+	# Install TUI scripts
+	$(INSTALL) -m 755 bin/tui_operator.sh $$HOME/.local/lib/asset-merger-engine/tui_operator.sh
+	$(INSTALL) -m 755 bin/tui_launcher.sh $$HOME/.local/lib/asset-merger-engine/tui_launcher.sh
+	@if [ -f bin/tui_whiptail.sh ]; then $(INSTALL) -m 755 bin/tui_whiptail.sh $$HOME/.local/lib/asset-merger-engine/; fi
+	@if [ -f bin/tui_pure_shell.sh ]; then $(INSTALL) -m 755 bin/tui_pure_shell.sh $$HOME/.local/lib/asset-merger-engine/; fi
 
 	# Install configuration
 	@if [ ! -f $$HOME/.config/asset-merger-engine/merger.conf ]; then \

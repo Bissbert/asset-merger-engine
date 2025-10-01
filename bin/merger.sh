@@ -13,8 +13,22 @@ set -u  # Exit on undefined variable
 # Script metadata
 readonly SCRIPT_NAME="$(basename "$0")"
 readonly SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-readonly SCRIPT_VERSION="$(cat "${SCRIPT_DIR}/../VERSION" 2>/dev/null || echo "3.0.0")"
-readonly PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+# Detect if we're running from an installed location or development
+# This will be replaced during installation by sed
+if [ -f "${SCRIPT_DIR}/../VERSION" ]; then
+    # Development mode - running from source tree
+    readonly SCRIPT_VERSION="$(cat "${SCRIPT_DIR}/../VERSION" 2>/dev/null || echo "3.0.0")"
+    readonly PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+elif [ -f "${SCRIPT_DIR}/../lib/asset-merger-engine/VERSION" ]; then
+    # Installed in user or system location
+    readonly SCRIPT_VERSION="$(cat "${SCRIPT_DIR}/../lib/asset-merger-engine/VERSION" 2>/dev/null || echo "3.0.0")"
+    readonly PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+else
+    # Fallback for edge cases
+    readonly SCRIPT_VERSION="3.0.0"
+    readonly PROJECT_ROOT="${SCRIPT_DIR}/.."
+fi
 
 # Component paths
 readonly LIB_DIR="${PROJECT_ROOT}/lib"
@@ -36,7 +50,12 @@ readonly VALIDATOR_MODULE="${LIB_DIR}/validator.py"
 readonly SORTER_MODULE="${LIB_DIR}/sorter.py"
 readonly APPLY_MODULE="${LIB_DIR}/apply.py"
 readonly LOGGER_MODULE="${LIB_DIR}/logger.py"
-readonly TUI_MODULE="${BIN_DIR}/tui_operator.sh"
+# TUI module can be in BIN_DIR (dev) or LIB_DIR (installed)
+if [ -f "${BIN_DIR}/tui_operator.sh" ]; then
+    readonly TUI_MODULE="${BIN_DIR}/tui_operator.sh"
+else
+    readonly TUI_MODULE="${LIB_DIR}/tui_operator.sh"
+fi
 readonly COMMON_LIB="${LIB_DIR}/common.sh"
 
 # Runtime configuration
