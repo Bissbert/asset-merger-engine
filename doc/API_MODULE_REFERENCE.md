@@ -16,7 +16,7 @@
 
 ## Module Overview
 
-The topdesk-zbx-merger consists of modular components that work together to synchronize asset data between Zabbix and Topdesk. Each module has a specific responsibility and communicates through well-defined interfaces.
+The asset-merger-engine consists of modular components that work together to synchronize asset data between Zabbix and Topdesk. Each module has a specific responsibility and communicates through well-defined interfaces.
 
 ### Module Communication Flow
 

@@ -1,4 +1,4 @@
-# Topdesk-Zabbix Merger (`merger`)
+# Asset Merger Engine (`merger`)
 
 A **POSIX-compliant toolkit** for synchronizing asset data between [Zabbix](https://www.zabbix.com/) and [Topdesk](https://www.topdesk.com/) systems, built around the Unix philosophy: modular components, composable workflows, and text-based data interchange.
 
@@ -39,7 +39,7 @@ A **POSIX-compliant toolkit** for synchronizing asset data between [Zabbix](http
 System-wide (default prefix `/usr/local`):
 
 ```bash
-cd topdesk-zbx-merger
+cd asset-merger-engine
 make install        # installs scripts, libraries, and configuration
 ```
 

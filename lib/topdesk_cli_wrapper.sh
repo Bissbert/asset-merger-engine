@@ -326,7 +326,7 @@ td_test_connection() {
 
 # Sync assets to cache
 td_sync_to_cache() {
-    local cache_dir="${CACHE_DIR:-/tmp/topdesk-zbx-merger/cache}"
+    local cache_dir="${CACHE_DIR:-/tmp/asset-merger-engine/cache}"
     local filter="${1:-}"
 
     log_info "Syncing Topdesk assets to cache"

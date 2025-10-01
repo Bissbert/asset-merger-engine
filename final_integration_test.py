@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Final Comprehensive Integration Test for Topdesk-Zabbix Merger"""
+"""Final Comprehensive Integration Test for Asset Merger Engine"""
 
 import sys
 import os
@@ -20,7 +20,7 @@ NC = '\033[0m'
 print(f"""
 {BLUE}╔════════════════════════════════════════════════════════════╗
 ║   COMPREHENSIVE INTEGRATION TEST REPORT                       ║
-║   Topdesk-Zabbix Merger Tool Validation                      ║
+║   Asset Merger Engine Tool Validation                        ║
 ╚════════════════════════════════════════════════════════════╝{NC}
 """)
 

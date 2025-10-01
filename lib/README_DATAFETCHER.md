@@ -59,10 +59,10 @@ The Data Fetcher module is responsible for retrieving asset information from bot
 2. Set up configuration:
    ```bash
    # Copy config template
-   cp lib/config.template ~/.config/topdesk-zbx-merger/merger.conf
+   cp lib/config.template ~/.config/asset-merger-engine/merger.conf
 
    # Edit with your credentials
-   vi ~/.config/topdesk-zbx-merger/merger.conf
+   vi ~/.config/asset-merger-engine/merger.conf
    ```
 
 3. Make scripts executable:
@@ -91,7 +91,7 @@ export CACHE_TTL=300
 
 ### Configuration File
 
-Create `~/.config/topdesk-zbx-merger/merger.conf` based on the template.
+Create `~/.config/asset-merger-engine/merger.conf` based on the template.
 
 ## Usage
 
@@ -192,7 +192,7 @@ The module outputs normalized JSON data:
 
 ```bash
 # Check logs for errors
-tail -f /tmp/topdesk-zbx-merger/merger.log
+tail -f /tmp/asset-merger-engine/merger.log
 
 # Clear corrupted cache
 ./lib/datafetcher.sh clear-cache
@@ -220,7 +220,7 @@ Run the test suite:
 
 - Results cached for 5 minutes by default
 - Session cached for 1 hour
-- Cache location: `/tmp/topdesk-zbx-merger/cache`
+- Cache location: `/tmp/asset-merger-engine/cache`
 
 ### Parallel Processing
 
@@ -253,7 +253,7 @@ Run the test suite:
 3. **Cache issues**
    ```bash
    # Clear all cache
-   rm -rf /tmp/topdesk-zbx-merger/cache/*
+   rm -rf /tmp/asset-merger-engine/cache/*
    ```
 
 4. **Missing tools**

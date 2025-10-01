@@ -1,11 +1,11 @@
-# Integration Test Report - Topdesk-Zabbix Merger Tool
+# Integration Test Report - Asset Merger Engine Tool
 
 ## Executive Summary
 Date: 2025-09-30
 Status: **OPERATIONAL WITH LIMITATIONS**
 Overall Score: **70.6%** (12/17 tests passed)
 
-The Topdesk-Zabbix Merger tool has been successfully validated. Core functionality is operational, but the actual zbx and topdesk CLI tools are not installed, which is expected in a test environment.
+The Asset Merger Engine tool has been successfully validated. Core functionality is operational, but the actual zbx and topdesk CLI tools are not installed, which is expected in a test environment.
 
 ## Test Results
 
@@ -147,7 +147,7 @@ The only missing components are the external CLI tools (zbx and topdesk), which 
 
 ## Conclusion
 
-The Topdesk-Zabbix Merger tool is **70.6% integrated** and ready for:
+The Asset Merger Engine tool is **70.6% integrated** and ready for:
 - ✅ Development and testing (using wrappers)
 - ✅ Code review and validation
 - ⚠️ Production deployment (requires CLI tools)

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Test script for the topdesk-zbx-merger tool
+# Test script for the asset-merger-engine tool
 # This script tests the integration with actual zbx and topdesk commands
 
 set -e
@@ -44,7 +44,7 @@ check_command() {
 }
 
 echo "========================================"
-echo "Topdesk-Zabbix Merger Integration Tests"
+echo "Asset Merger Engine Integration Tests"
 echo "========================================"
 echo
 

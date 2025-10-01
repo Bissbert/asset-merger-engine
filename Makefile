@@ -1,13 +1,13 @@
-# Makefile for topdesk-zbx-merger
+# Makefile for asset-merger-engine
 # POSIX-compliant Makefile for installation and management
 
 # Variables
 PREFIX ?= /usr/local
 BINDIR = $(PREFIX)/bin
-LIBDIR = $(PREFIX)/lib/topdesk-zbx-merger
-ETCDIR = /etc/topdesk-zbx-merger
-VARDIR = /var/lib/topdesk-zbx-merger
-LOGDIR = /var/log/topdesk-zbx-merger
+LIBDIR = $(PREFIX)/lib/asset-merger-engine
+ETCDIR = /etc/asset-merger-engine
+VARDIR = /var/lib/asset-merger-engine
+LOGDIR = /var/log/asset-merger-engine
 
 # Installation user and group
 INSTALL_USER ?= root
@@ -28,7 +28,7 @@ all: help
 # Display help
 .PHONY: help
 help:
-	@echo "Topdesk-Zabbix Merger Installation"
+	@echo "Asset Merger Engine Installation"
 	@echo "=================================="
 	@echo ""
 	@echo "Targets:"
@@ -62,7 +62,7 @@ check:
 # Install the tool
 .PHONY: install
 install: check
-	@echo "Installing topdesk-zbx-merger..."
+	@echo "Installing asset-merger-engine..."
 
 	# Create directories
 	$(MKDIR) $(BINDIR)
@@ -78,7 +78,7 @@ install: check
 	$(MKDIR) $(LOGDIR)
 
 	# Install scripts
-	$(INSTALL) -m 755 bin/merger.sh $(BINDIR)/topdesk-zbx-merger
+	$(INSTALL) -m 755 bin/merger.sh $(BINDIR)/asset-merger-engine
 
 	# Install libraries
 	$(INSTALL) -m 644 lib/common.sh $(LIBDIR)/
@@ -101,16 +101,16 @@ install: check
 	@echo ""
 	@echo "Next steps:"
 	@echo "1. Edit configuration: $(ETCDIR)/merger.conf"
-	@echo "2. Test connection: topdesk-zbx-merger validate"
-	@echo "3. Run synchronization: topdesk-zbx-merger sync"
+	@echo "2. Test connection: asset-merger-engine validate"
+	@echo "3. Run synchronization: asset-merger-engine sync"
 
 # Uninstall the tool
 .PHONY: uninstall
 uninstall:
-	@echo "Uninstalling topdesk-zbx-merger..."
+	@echo "Uninstalling asset-merger-engine..."
 
 	# Remove binaries
-	$(RM) $(BINDIR)/topdesk-zbx-merger
+	$(RM) $(BINDIR)/asset-merger-engine
 
 	# Remove libraries
 	$(RMDIR) $(LIBDIR)
@@ -147,13 +147,13 @@ clean:
 .PHONY: dev-install
 dev-install:
 	@echo "Setting up development environment..."
-	@ln -sf $$(pwd)/bin/merger.sh /usr/local/bin/topdesk-zbx-merger-dev
+	@ln -sf $$(pwd)/bin/merger.sh /usr/local/bin/asset-merger-engine-dev
 	@echo "Development installation complete!"
 
 .PHONY: dev-uninstall
 dev-uninstall:
 	@echo "Removing development environment..."
-	@rm -f /usr/local/bin/topdesk-zbx-merger-dev
+	@rm -f /usr/local/bin/asset-merger-engine-dev
 	@echo "Development uninstallation complete!"
 
 .DEFAULT:

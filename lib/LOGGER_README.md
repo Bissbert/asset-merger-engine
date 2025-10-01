@@ -340,4 +340,4 @@ See the following files for complete examples:
 
 ## License
 
-Part of the Topdesk-Zabbix Merger Tool
+Part of the Asset Merger Engine Tool

@@ -1,7 +1,7 @@
-# Topdesk-Zabbix Merger Tool
+# Asset Merger Engine Tool
 
 ## Overview
-The topdesk-zbx-merger is a POSIX-compliant shell tool designed to synchronize asset data between Zabbix monitoring system and Topdesk asset management system.
+The asset-merger-engine is a POSIX-compliant shell tool designed to synchronize asset data between Zabbix monitoring system and Topdesk asset management system.
 
 ## Features
 - Fetch asset data from Zabbix
@@ -51,7 +51,7 @@ vi etc/merger.conf
 
 ## Directory Structure
 ```
-topdesk-zbx-merger/
+asset-merger-engine/
 ├── bin/           # Executable scripts
 │   └── merger.sh  # Main merger script
 ├── lib/           # Shared libraries

@@ -1,5 +1,5 @@
 #!/bin/sh
-# topdesk.sh - Topdesk-specific functions for topdesk-zbx-merger
+# topdesk.sh - Topdesk-specific functions for asset-merger-engine
 # POSIX-compliant library for Topdesk operations
 
 # Source common library

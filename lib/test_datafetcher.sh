@@ -7,8 +7,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 . "${SCRIPT_DIR}/datafetcher.sh"
 
 # Test configuration
-TEST_LOG="${LOG_FILE:-/tmp/topdesk-zbx-merger/test.log}"
-TEST_CACHE_DIR="${CACHE_DIR:-/tmp/topdesk-zbx-merger/cache}"
+TEST_LOG="${LOG_FILE:-/tmp/asset-merger-engine/test.log}"
+TEST_CACHE_DIR="${CACHE_DIR:-/tmp/asset-merger-engine/cache}"
 
 # Colors for output (if terminal supports it)
 if [ -t 1 ]; then
