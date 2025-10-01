@@ -393,7 +393,16 @@ Add to crontab:
 
 ## License
 
-This project is provided as-is for internal use. See LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+The MIT License allows you to:
+- Use the code for commercial purposes
+- Use the code for scientific research
+- Use the code for private/personal projects
+- Modify and distribute the code
+- Sublicense the code
+
+All without any warranty or liability on the authors.
 
 ---
 

@@ -3,6 +3,9 @@
 # Integrates all components for Zabbix-Topdesk asset synchronization
 # Version: 3.0.0
 # POSIX-compliant production-ready implementation
+#
+# Copyright (c) 2025 Bissbert
+# Licensed under the MIT License - see LICENSE file for details
 
 set -e  # Exit on error
 set -u  # Exit on undefined variable
@@ -194,7 +197,8 @@ EOF
 version() {
     echo "${SCRIPT_NAME} version ${SCRIPT_VERSION}"
     echo "Asset Merger Engine"
-    echo "Copyright (c) 2025"
+    echo "Copyright (c) 2025 Bissbert"
+    echo "Licensed under the MIT License"
 }
 
 # Initialize environment
