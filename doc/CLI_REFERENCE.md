@@ -642,7 +642,7 @@ merger.sh report --from "2025-01-01" --to "2025-01-31"
 # daily-sync.sh - Run daily at 2 AM via cron
 
 # Load configuration
-export CONFIG_FILE="/etc/topdesk-zbx-merger/production.conf"
+export CONFIG_FILE="/etc/asset-merger-engine/production.conf"
 
 # Run sync with logging
 /usr/local/bin/merger.sh \
@@ -706,8 +706,8 @@ The configuration file (`merger.conf`) controls all aspects of the merger operat
 Default locations (searched in order):
 1. `$CONFIG_FILE` environment variable
 2. `./merger.conf`
-3. `$HOME/.config/topdesk-zbx-merger/merger.conf`
-4. `/etc/topdesk-zbx-merger/merger.conf`
+3. `$HOME/.config/asset-merger-engine/merger.conf`
+4. `/etc/asset-merger-engine/merger.conf`
 
 ### Configuration Sections
 
@@ -803,7 +803,7 @@ NORMALIZE_LOCATION="true"      # Standardize location names
 ```bash
 # Caching
 ENABLE_CACHING="true"
-CACHE_DIR="/var/cache/topdesk-zbx-merger"
+CACHE_DIR="/var/cache/asset-merger-engine"
 CACHE_TTL="3600"            # Seconds
 
 # Performance
@@ -856,7 +856,7 @@ LOG_FORMAT="json"           # json|text
 # Syslog Integration
 USE_SYSLOG="false"
 SYSLOG_FACILITY="local0"
-SYSLOG_TAG="topdesk-zbx-merger"
+SYSLOG_TAG="asset-merger-engine"
 
 # Audit Logging
 AUDIT_LOG="true"
@@ -1198,7 +1198,7 @@ cat output/dry-run-report.json
 
 # Set production environment
 export ENV="production"
-export CONFIG_FILE="/etc/topdesk-zbx-merger/production.conf"
+export CONFIG_FILE="/etc/asset-merger-engine/production.conf"
 export LOG_LEVEL="INFO"
 
 # Pre-sync validation
@@ -1268,7 +1268,7 @@ echo "Starting disaster recovery..."
 systemctl stop topdesk-merger.service
 
 # 2. Load backup configuration
-export CONFIG_FILE="/etc/topdesk-zbx-merger/recovery.conf"
+export CONFIG_FILE="/etc/asset-merger-engine/recovery.conf"
 
 # 3. Fetch all data from Zabbix
 ./bin/merger.sh fetch --all --output recovery-data.json
@@ -1825,7 +1825,7 @@ class Logger:
 ### File Structure
 
 ```
-topdesk-zbx-merger/
+asset-merger-engine/
 ├── bin/
 │   ├── merger.sh           # Main orchestrator
 │   ├── tui_launcher.sh     # TUI interface

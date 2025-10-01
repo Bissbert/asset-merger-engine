@@ -257,7 +257,7 @@ export TOPDESK_CLI_COMMAND="/usr/local/bin/topdesk-cli"  # If not in PATH
 
 # General Settings
 export LOG_LEVEL="INFO"
-export CACHE_DIR="/tmp/topdesk-zbx-merger/cache"
+export CACHE_DIR="/tmp/asset-merger-engine/cache"
 export CACHE_TTL=300
 export MOCK_MODE="auto"  # auto, true, or false
 ```
@@ -306,7 +306,7 @@ If the check script can't find the CLI tools:
 
 3. Check logs:
    ```bash
-   tail -f /tmp/topdesk-zbx-merger/merger.log
+   tail -f /tmp/asset-merger-engine/merger.log
    ```
 
 ### Connection Timeouts

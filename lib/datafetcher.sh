@@ -1,5 +1,5 @@
 #!/bin/sh
-# datafetcher.sh - Data retrieval module for topdesk-zbx-merger
+# datafetcher.sh - Data retrieval module for asset-merger-engine
 # Fetches asset information from Zabbix and Topdesk systems
 
 # Source dependencies
@@ -7,11 +7,11 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 . "${SCRIPT_DIR}/common.sh" 2>/dev/null || true
 
 # Configuration
-CACHE_DIR="${CACHE_DIR:-/tmp/topdesk-zbx-merger/cache}"
+CACHE_DIR="${CACHE_DIR:-/tmp/asset-merger-engine/cache}"
 CACHE_TTL="${CACHE_TTL:-300}"  # Cache TTL in seconds (5 minutes)
 MAX_RETRIES="${MAX_RETRIES:-3}"
 RETRY_DELAY="${RETRY_DELAY:-2}"
-LOG_FILE="${LOG_FILE:-/tmp/topdesk-zbx-merger/merger.log}"
+LOG_FILE="${LOG_FILE:-/tmp/asset-merger-engine/merger.log}"
 
 # Initialize cache directory
 init_cache() {

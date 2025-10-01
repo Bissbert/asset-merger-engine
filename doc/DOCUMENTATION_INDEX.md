@@ -1,4 +1,4 @@
-# Documentation Index for Topdesk-Zabbix Merger
+# Documentation Index for Asset Merger Engine
 
 ## Documentation Completeness Report
 
@@ -176,7 +176,7 @@
 ## 📝 Recommendations
 
 ### Documentation is Complete
-The topdesk-zbx-merger tool has **excellent documentation coverage**. All critical areas are well-documented with:
+The asset-merger-engine tool has **excellent documentation coverage**. All critical areas are well-documented with:
 
 1. Clear installation and setup instructions
 2. Comprehensive command references
@@ -198,7 +198,7 @@ While documentation is comprehensive, consider:
 
 ## 🎯 Conclusion
 
-The topdesk-zbx-merger tool documentation is **comprehensive and well-organized**. It provides:
+The asset-merger-engine tool documentation is **comprehensive and well-organized**. It provides:
 
 - Complete coverage of all features and components
 - Clear examples and real-world scenarios

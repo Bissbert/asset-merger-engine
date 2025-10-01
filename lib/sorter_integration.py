@@ -14,7 +14,7 @@ class MergerSorterIntegration:
     Example integration class showing how sorter fits into the merger workflow.
     """
 
-    def __init__(self, output_dir='/Users/fabian/sources/posix/topdesk-zbx-merger/output'):
+    def __init__(self, output_dir='/Users/fabian/sources/posix/asset-merger-engine/output'):
         self.output_dir = Path(output_dir)
         self.sorter = SortingStrategy()
 

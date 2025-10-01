@@ -1,5 +1,5 @@
-# Configuration template for topdesk-zbx-merger data fetcher
-# Copy this file to ~/.config/topdesk-zbx-merger/merger.conf and update with your settings
+# Configuration template for asset-merger-engine data fetcher
+# Copy this file to ~/.config/asset-merger-engine/merger.conf and update with your settings
 #
 # IMPORTANT: This tool requires the following CLI tools to be installed:
 # - zbx: Zabbix CLI tool
@@ -38,7 +38,7 @@ TOPDESK_API_KEY="your_topdesk_api_key"
 # ----------------
 
 # Log file location
-LOG_FILE="/tmp/topdesk-zbx-merger/merger.log"
+LOG_FILE="/tmp/asset-merger-engine/merger.log"
 
 # Log level (DEBUG, INFO, WARNING, ERROR)
 LOG_LEVEL="INFO"
@@ -50,7 +50,7 @@ LOG_LEVEL="INFO"
 # -------------------
 
 # Cache directory
-CACHE_DIR="/tmp/topdesk-zbx-merger/cache"
+CACHE_DIR="/tmp/asset-merger-engine/cache"
 
 # Cache TTL in seconds (default: 300 = 5 minutes)
 CACHE_TTL=300

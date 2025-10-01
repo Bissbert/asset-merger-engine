@@ -1,4 +1,4 @@
-# Topdesk-Zabbix Merger - Main Script Documentation
+# Asset Merger Engine - Main Script Documentation
 
 ## Overview
 
@@ -18,7 +18,7 @@ The `merger.sh` script is the main orchestration tool for synchronizing asset in
 
 1. Ensure the script is executable:
 ```bash
-chmod +x /path/to/topdesk-zbx-merger/bin/merger.sh
+chmod +x /path/to/asset-merger-engine/bin/merger.sh
 ```
 
 2. Run initial validation:
@@ -28,7 +28,7 @@ chmod +x /path/to/topdesk-zbx-merger/bin/merger.sh
 
 3. Edit the generated configuration file:
 ```bash
-vi /path/to/topdesk-zbx-merger/etc/merger.conf
+vi /path/to/asset-merger-engine/etc/merger.conf
 ```
 
 ## Usage
@@ -194,7 +194,7 @@ The merger integrates these agent modules:
 ## Directory Structure
 
 ```
-topdesk-zbx-merger/
+asset-merger-engine/
 ├── bin/
 │   ├── merger.sh           # Main orchestration script
 │   └── tui_operator.sh     # TUI component

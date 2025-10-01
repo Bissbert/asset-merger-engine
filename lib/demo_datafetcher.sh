@@ -38,8 +38,8 @@ demo_configuration() {
     echo "   - TOPDESK_API_KEY: ***hidden***"
     echo
     echo "   ${YELLOW}General Settings:${NC}"
-    echo "   - LOG_FILE: ${LOG_FILE:-/tmp/topdesk-zbx-merger/merger.log}"
-    echo "   - CACHE_DIR: ${CACHE_DIR:-/tmp/topdesk-zbx-merger/cache}"
+    echo "   - LOG_FILE: ${LOG_FILE:-/tmp/asset-merger-engine/merger.log}"
+    echo "   - CACHE_DIR: ${CACHE_DIR:-/tmp/asset-merger-engine/cache}"
     echo "   - CACHE_TTL: ${CACHE_TTL:-300} seconds"
     echo
 }
@@ -196,7 +196,7 @@ demo_caching() {
     echo "   Demonstrating cache operations..."
     echo
 
-    local cache_dir="/tmp/topdesk-zbx-merger/cache"
+    local cache_dir="/tmp/asset-merger-engine/cache"
     mkdir -p "${cache_dir}"
 
     echo "   Creating cache entry..."
@@ -223,7 +223,7 @@ demo_error_handling() {
     echo "   Attempt 3/3... ${GREEN}Success${NC}"
     echo
     echo "   ${YELLOW}Error Recovery Actions:${NC}"
-    echo "   - Logged error to: /tmp/topdesk-zbx-merger/merger.log"
+    echo "   - Logged error to: /tmp/asset-merger-engine/merger.log"
     echo "   - Cached partial results for recovery"
     echo "   - Notified monitoring system"
     echo
@@ -339,7 +339,7 @@ main() {
     echo "${CYAN}========================================${NC}"
     echo
     echo "To use the data fetcher in production:"
-    echo "1. Configure credentials in ~/.config/topdesk-zbx-merger/merger.conf"
+    echo "1. Configure credentials in ~/.config/asset-merger-engine/merger.conf"
     echo "2. Run: ./datafetcher.sh fetch"
     echo "3. Process output with other modules"
     echo

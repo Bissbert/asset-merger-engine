@@ -2,9 +2,9 @@
 # auth_manager.sh - Authentication and session management for CLI tools
 
 # Configuration
-AUTH_DIR="${AUTH_DIR:-${HOME}/.config/topdesk-zbx-merger}"
+AUTH_DIR="${AUTH_DIR:-${HOME}/.config/asset-merger-engine}"
 AUTH_CACHE_TTL="${AUTH_CACHE_TTL:-3600}"  # Session TTL in seconds (1 hour)
-LOG_FILE="${LOG_FILE:-/tmp/topdesk-zbx-merger/merger.log}"
+LOG_FILE="${LOG_FILE:-/tmp/asset-merger-engine/merger.log}"
 
 # Initialize authentication directory
 init_auth_dir() {

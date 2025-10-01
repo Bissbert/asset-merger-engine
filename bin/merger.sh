@@ -1,5 +1,5 @@
 #!/bin/sh
-# topdesk-zbx-merger - Main orchestration script
+# asset-merger-engine - Main orchestration script
 # Integrates all components for Zabbix-Topdesk asset synchronization
 # Version: 3.0.0
 # POSIX-compliant production-ready implementation
@@ -193,7 +193,7 @@ EOF
 # Print version
 version() {
     echo "${SCRIPT_NAME} version ${SCRIPT_VERSION}"
-    echo "Topdesk-Zabbix Asset Merger"
+    echo "Asset Merger Engine"
     echo "Copyright (c) 2025"
 }
 
@@ -317,7 +317,7 @@ validate_config() {
 # Create default configuration
 create_default_config() {
     cat > "${CONFIG_FILE}" << 'EOF'
-# Topdesk-Zabbix Merger Configuration
+# Asset Merger Engine Configuration
 # Generated on: $(date)
 
 # Zabbix Configuration
@@ -1001,7 +1001,7 @@ cmd_validate() {
 
 # Command: status
 cmd_status() {
-    echo "${BOLD}Topdesk-Zabbix Merger Status${NC}"
+    echo "${BOLD}Asset Merger Engine Status${NC}"
     echo ""
 
     # Check if running
@@ -1076,7 +1076,7 @@ cmd_report() {
     </style>
 </head>
 <body>
-    <h1>Topdesk-Zabbix Synchronization Report</h1>
+    <h1>Asset Merger Engine Synchronization Report</h1>
 EOHTML
 
     echo "    <div class='summary'>" >> "${report_file}"

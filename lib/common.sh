@@ -1,5 +1,5 @@
 #!/bin/sh
-# common.sh - Common functions and utilities for topdesk-zbx-merger
+# common.sh - Common functions and utilities for asset-merger-engine
 # POSIX-compliant shared library
 
 # JSON manipulation functions (using jq)
@@ -216,7 +216,7 @@ format_duration() {
 # -----------------
 
 # Configure logging
-LOG_FILE="${LOG_FILE:-/tmp/topdesk-zbx-merger/merger.log}"
+LOG_FILE="${LOG_FILE:-/tmp/asset-merger-engine/merger.log}"
 LOG_LEVEL="${LOG_LEVEL:-INFO}"
 DEBUG="${DEBUG:-}"
 

@@ -23,7 +23,7 @@
 # /etc/cron.daily/topdesk-zbx-sync.sh
 
 # Configuration
-export CONFIG_FILE="/etc/topdesk-zbx-merger/production.conf"
+export CONFIG_FILE="/etc/asset-merger-engine/production.conf"
 export LOG_FILE="/var/log/merger/daily-sync-$(date +%Y%m%d).log"
 
 # Lock file to prevent concurrent runs
@@ -40,7 +40,7 @@ touch "$LOCK_FILE"
 trap "rm -f $LOCK_FILE" EXIT
 
 # Run synchronization
-/opt/topdesk-zbx-merger/bin/merger.sh \
+/opt/asset-merger-engine/bin/merger.sh \
     --config "$CONFIG_FILE" \
     --log "$LOG_FILE" \
     sync \
@@ -51,7 +51,7 @@ trap "rm -f $LOCK_FILE" EXIT
 # Check result
 if [ $? -eq 0 ]; then
     # Success - send summary
-    /opt/topdesk-zbx-merger/bin/merger.sh report \
+    /opt/asset-merger-engine/bin/merger.sh report \
         --format text | \
         mail -s "Daily Sync Success" ops@example.com
 else
@@ -712,7 +712,7 @@ spec:
         spec:
           containers:
           - name: merger
-            image: company/topdesk-zbx-merger:latest
+            image: company/asset-merger-engine:latest
             env:
             - name: CONFIG_FILE
               value: /config/merger.conf
@@ -1217,4 +1217,4 @@ Keep documentation updated:
 
 ---
 
-This documentation provides comprehensive scenarios, examples, and patterns for using the topdesk-zbx-merger tool in production environments.
+This documentation provides comprehensive scenarios, examples, and patterns for using the asset-merger-engine tool in production environments.

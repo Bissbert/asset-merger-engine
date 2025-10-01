@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Comprehensive Integration Test for Topdesk-Zabbix Merger"""
+"""Comprehensive Integration Test for Asset Merger Engine"""
 
 import sys
 import os

@@ -1,5 +1,5 @@
 #!/bin/sh
-# zabbix.sh - Zabbix-specific functions for topdesk-zbx-merger
+# zabbix.sh - Zabbix-specific functions for asset-merger-engine
 # POSIX-compliant library for Zabbix operations
 
 # Source common library

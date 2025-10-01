@@ -205,7 +205,7 @@ test_topdesk_connection() {
 create_sample_configs() {
     echo "\nCreating sample configuration files..."
 
-    local config_dir="${HOME}/.config/topdesk-zbx-merger"
+    local config_dir="${HOME}/.config/asset-merger-engine"
     mkdir -p "$config_dir"
 
     # Create sample merger config
@@ -307,7 +307,7 @@ EOF
 # Main execution
 main() {
     echo "========================================="
-    echo "Topdesk-Zabbix Merger CLI Tools Check"
+    echo "Asset Merger Engine CLI Tools Check"
     echo "========================================="
 
     local errors=0
