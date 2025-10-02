@@ -1,0 +1,59 @@
+# Audit Profile Template
+# Read-only configuration for auditing and reporting
+# No changes are made to any system
+
+# Merge Settings
+MERGE_STRATEGY="update"           # Update mode (but dry-run prevents changes)
+CONFLICT_RESOLUTION="manual"      # Manual resolution (informational only)
+BATCH_SIZE="1000"                 # Large batches for reporting
+BATCH_DELAY="0"                   # No delay needed
+
+# Safety Features (Read-Only)
+DRY_RUN="true"                    # ALWAYS dry-run for audit
+STRICT_VALIDATION="true"          # Full validation for reporting
+VALIDATE_IP="true"                # Check IP format
+VALIDATE_HOSTNAME="true"          # Check hostname format
+VALIDATE_EMAIL="true"             # Check email format
+REQUIRE_OWNER="false"             # Report on missing owners
+ERROR_THRESHOLD="999999"          # Never stop on errors
+CONTINUE_ON_ERROR="true"          # Always continue
+
+# Performance (Optimized for reading)
+MAX_WORKERS="4"                   # Moderate parallelization
+PARALLEL_FETCH="true"             # Parallel fetching for speed
+CHUNK_SIZE="200"                  # Large chunks for reading
+ENABLE_CACHING="false"            # No caching for fresh data
+CACHE_TTL="0"                     # No cache
+
+# Retry Configuration
+MAX_RETRIES="2"                   # Limited retries
+RETRY_DELAY="5"                   # 5 second retry delay
+RETRY_BACKOFF="1"                 # No backoff
+
+# Notifications
+NOTIFY_ON_SUCCESS="true"          # Send audit report
+NOTIFY_ON_ERROR="false"           # No error notifications for audit
+NOTIFICATION_METHOD="email"       # Email audit results
+
+# Logging (Comprehensive)
+LOG_LEVEL="INFO"                  # Detailed logging
+LOG_ROTATE="true"                 # Enable log rotation
+LOG_MAX_SIZE="52428800"           # 50MB max log size
+LOG_MAX_FILES="90"                # Keep 90 days of logs
+
+# Reports (Comprehensive)
+GENERATE_REPORTS="true"           # Always generate reports
+REPORT_FORMAT="html"              # HTML for readability
+REPORT_RECIPIENTS=""              # Set email recipients
+COMPRESS_OUTPUT="true"            # Compress large audit reports
+
+# Output Options
+OUTPUT_FORMAT="json"              # Structured data output
+OUTPUT_VERBOSE="true"             # Verbose output
+OUTPUT_INCLUDE_METADATA="true"    # Include all metadata
+
+# Audit-Specific Settings
+AUDIT_MODE="true"                 # Enable audit mode
+AUDIT_LOG_ALL_DIFFERENCES="true"  # Log all differences found
+AUDIT_INCLUDE_TIMESTAMPS="true"   # Include timestamps in audit
+AUDIT_EXPORT_FORMAT="csv"         # Export audit data as CSV

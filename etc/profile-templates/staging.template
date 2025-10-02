@@ -1,0 +1,47 @@
+# Staging Profile Template
+# Balanced settings for staging/test environments
+# Mix of safety and performance
+
+# Merge Settings
+MERGE_STRATEGY="sync"             # Full synchronization
+CONFLICT_RESOLUTION="zabbix"      # Zabbix is source of truth
+BATCH_SIZE="100"                  # Moderate batch size
+BATCH_DELAY="1"                   # 1 second delay between batches
+
+# Safety Features
+DRY_RUN="false"                   # Apply changes
+STRICT_VALIDATION="true"          # Enable validation
+VALIDATE_IP="true"                # Validate IP format
+VALIDATE_HOSTNAME="true"          # Validate hostname format
+VALIDATE_EMAIL="false"            # Relaxed email validation
+REQUIRE_OWNER="false"             # Owner field optional
+ERROR_THRESHOLD="20"              # Higher error tolerance
+CONTINUE_ON_ERROR="true"          # Continue processing on errors
+
+# Performance (Balanced)
+MAX_WORKERS="4"                   # Moderate parallelization
+PARALLEL_FETCH="true"             # Enable parallel fetching
+CHUNK_SIZE="50"                   # Medium chunks
+ENABLE_CACHING="true"             # Use caching
+CACHE_TTL="1800"                  # 30 minute cache
+
+# Retry Configuration
+MAX_RETRIES="3"                   # Standard retries
+RETRY_DELAY="5"                   # 5 second initial retry delay
+RETRY_BACKOFF="2"                 # Exponential backoff
+
+# Notifications
+NOTIFY_ON_SUCCESS="false"         # No success notifications
+NOTIFY_ON_ERROR="true"            # Only error notifications
+NOTIFICATION_METHOD="email"       # Email notifications
+
+# Logging
+LOG_LEVEL="INFO"                  # Standard logging
+LOG_ROTATE="true"                 # Enable log rotation
+LOG_MAX_SIZE="10485760"           # 10MB max log size
+LOG_MAX_FILES="10"                # Keep 10 log files
+
+# Reports
+GENERATE_REPORTS="true"           # Generate reports
+REPORT_FORMAT="json"              # JSON for automation
+COMPRESS_OUTPUT="false"           # Don't compress in staging
