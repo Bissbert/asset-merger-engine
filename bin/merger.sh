@@ -143,6 +143,7 @@ usage() {
     printf "    %bhealth%b      Comprehensive health check of all components\n" "${CYAN}" "${NC}"
     printf "    %bstatus%b      Show current process status\n" "${CYAN}" "${NC}"
     printf "    %bclean%b       Clean temporary and cache files\n" "${CYAN}" "${NC}"
+    printf "    %bprofile%b     Manage synchronization profiles\n" "${CYAN}" "${NC}"
     printf "\n"
     printf "%bOPTIONS:%b\n" "${BOLD}" "${NC}"
     printf "    -c, --config FILE    Configuration file (default: %s)\n" "${DEFAULT_CONFIG_FILE}"
@@ -181,6 +182,15 @@ usage() {
     printf "    %bsync%b [OPTIONS]\n" "${CYAN}" "${NC}"
     printf "        --auto             Full automatic mode\n"
     printf "        --profile PROFILE  Use predefined profile\n"
+    printf "\n"
+    printf "    %bprofile%b [SUBCOMMAND] [OPTIONS]\n" "${CYAN}" "${NC}"
+    printf "        create NAME        Create new profile\n"
+    printf "        edit NAME          Edit existing profile\n"
+    printf "        list               List all profiles\n"
+    printf "        show NAME          Show profile details\n"
+    printf "        delete NAME        Delete a profile\n"
+    printf "        copy SRC DEST      Copy a profile\n"
+    printf "        wizard             Launch interactive wizard\n"
     printf "\n"
     printf "%bEXAMPLES:%b\n" "${BOLD}" "${NC}"
     printf "    # Validate system configuration\n"
@@ -1361,6 +1371,130 @@ cmd_health() {
     return 0
 }
 
+# Command: profile
+cmd_profile() {
+    # Source the profile manager
+    if [ -f "${LIB_DIR}/profile_manager.sh" ]; then
+        . "${LIB_DIR}/profile_manager.sh"
+    else
+        log_error "Profile manager module not found: ${LIB_DIR}/profile_manager.sh"
+        return 5
+    fi
+
+    # Get subcommand
+    local subcommand="${1:-list}"
+    shift 2>/dev/null || true
+
+    case "${subcommand}" in
+        create)
+            if [ -z "$1" ]; then
+                echo "Error: Profile name required" >&2
+                echo "Usage: ${SCRIPT_NAME} profile create NAME [OPTIONS]" >&2
+                return 1
+            fi
+            create_profile "$@"
+            ;;
+        edit)
+            if [ -z "$1" ]; then
+                echo "Error: Profile name required" >&2
+                echo "Usage: ${SCRIPT_NAME} profile edit NAME [OPTIONS]" >&2
+                return 1
+            fi
+            edit_profile "$@"
+            ;;
+        list)
+            list_profiles "${1:-0}"
+            ;;
+        show)
+            if [ -z "$1" ]; then
+                echo "Error: Profile name required" >&2
+                echo "Usage: ${SCRIPT_NAME} profile show NAME" >&2
+                return 1
+            fi
+            show_profile "$1"
+            ;;
+        delete)
+            if [ -z "$1" ]; then
+                echo "Error: Profile name required" >&2
+                echo "Usage: ${SCRIPT_NAME} profile delete NAME" >&2
+                return 1
+            fi
+            delete_profile "$1" "${2:-0}"
+            ;;
+        copy)
+            if [ -z "$1" ] || [ -z "$2" ]; then
+                echo "Error: Source and destination names required" >&2
+                echo "Usage: ${SCRIPT_NAME} profile copy SOURCE DEST" >&2
+                return 1
+            fi
+            copy_profile "$1" "$2"
+            ;;
+        validate)
+            if [ -z "$1" ]; then
+                echo "Error: Profile name required" >&2
+                echo "Usage: ${SCRIPT_NAME} profile validate NAME" >&2
+                return 1
+            fi
+            validate_profile "$1"
+            ;;
+        export)
+            if [ -z "$1" ]; then
+                echo "Error: Profile name required" >&2
+                echo "Usage: ${SCRIPT_NAME} profile export NAME [FILE]" >&2
+                return 1
+            fi
+            export_profile "$1" "$2"
+            ;;
+        import)
+            if [ -z "$1" ]; then
+                echo "Error: Import file required" >&2
+                echo "Usage: ${SCRIPT_NAME} profile import FILE [NAME]" >&2
+                return 1
+            fi
+            import_profile "$1" "$2"
+            ;;
+        wizard|interactive)
+            # Launch the profile wizard
+            if [ -x "${BIN_DIR}/profile_wizard.sh" ]; then
+                "${BIN_DIR}/profile_wizard.sh"
+            elif [ -x "${LIB_DIR}/profile_wizard.sh" ]; then
+                "${LIB_DIR}/profile_wizard.sh"
+            else
+                echo "Error: Profile wizard not found" >&2
+                return 5
+            fi
+            ;;
+        help|--help|-h)
+            echo "Profile Management Commands:"
+            echo ""
+            echo "  create NAME [OPTIONS]  Create a new profile"
+            echo "  edit NAME [OPTIONS]    Edit an existing profile"
+            echo "  list [--verbose]       List all profiles"
+            echo "  show NAME              Show profile details"
+            echo "  delete NAME [--force]  Delete a profile"
+            echo "  copy SOURCE DEST       Copy a profile"
+            echo "  validate NAME          Validate a profile"
+            echo "  export NAME [FILE]     Export profile to file"
+            echo "  import FILE [NAME]     Import profile from file"
+            echo "  wizard                 Launch interactive wizard"
+            echo ""
+            echo "Create Options:"
+            echo "  --template TEMPLATE    Use template (production/staging/development/audit)"
+            echo "  --strategy STRATEGY    Set merge strategy (update/create/sync)"
+            echo "  --conflict RESOLUTION  Set conflict resolution (zabbix/topdesk/manual/newest)"
+            echo "  --batch-size SIZE      Set batch size"
+            echo "  --workers N            Set max workers"
+            echo "  --dry-run true/false   Enable/disable dry run"
+            echo "  --set KEY=VALUE        Set custom configuration"
+            ;;
+        *)
+            echo "Unknown subcommand: ${subcommand}" >&2
+            echo "Run '${SCRIPT_NAME} profile help' for usage" >&2
+            return 1
+            ;;
+    esac
+}
+
 # Command: clean
 cmd_clean() {
     log_info "Cleaning temporary and cache files..."
@@ -1509,6 +1643,9 @@ main() {
             ;;
         clean)
             cmd_clean "$@"
+            ;;
+        profile)
+            cmd_profile "$@"
             ;;
         *)
             echo "Unknown command: ${COMMAND}" >&2
