@@ -1116,9 +1116,29 @@ cmd_validate() {
                 printf "\n  Testing URL: %s\n  " "${zbx_url}"
             fi
 
-            local http_code=$(curl -s -o /dev/null -w "%{http_code}" "${zbx_url}" 2>/dev/null)
+            # Use more robust curl options:
+            # -k: Allow insecure SSL (self-signed certs)
+            # -L: Follow redirects
+            # --connect-timeout 5: Set connection timeout
+            # -m 10: Maximum time for entire operation
+            local http_code
+
             if [ "${DEBUG}" = "1" ]; then
-                printf "HTTP Code: %s... " "${http_code}"
+                # In debug mode, show verbose curl output
+                printf "\n  Running: curl -I -s -k -L --connect-timeout 5 -m 10 '%s'\n" "${zbx_url}"
+                # Get headers to see what's happening
+                local headers
+                headers=$(curl -I -s -k -L --connect-timeout 5 -m 10 "${zbx_url}" 2>&1)
+                http_code=$(curl -s -o /dev/null -w "%{http_code}" -k -L --connect-timeout 5 -m 10 "${zbx_url}" 2>&1)
+                printf "  HTTP Code: %s\n" "${http_code}"
+                if [ "${http_code}" = "000" ]; then
+                    printf "  Connection failed. Trying verbose mode:\n"
+                    curl -v -s -k -L --connect-timeout 5 -m 10 "${zbx_url}" 2>&1 | head -20 || true
+                fi
+                printf "  "
+            else
+                # Normal mode - just get HTTP code
+                http_code=$(curl -s -o /dev/null -w "%{http_code}" -k -L --connect-timeout 5 -m 10 "${zbx_url}" 2>/dev/null)
             fi
 
             if echo "${http_code}" | grep -q "200\|401\|403"; then
@@ -1143,9 +1163,25 @@ cmd_validate() {
                 printf "\n  Testing URL: %s\n  " "${td_url}"
             fi
 
-            local http_code=$(curl -s -o /dev/null -w "%{http_code}" "${td_url}" 2>/dev/null)
+            # Use more robust curl options (same as Zabbix)
+            local http_code
+
             if [ "${DEBUG}" = "1" ]; then
-                printf "HTTP Code: %s... " "${http_code}"
+                # In debug mode, show verbose curl output
+                printf "\n  Running: curl -I -s -k -L --connect-timeout 5 -m 10 '%s'\n" "${td_url}"
+                # Get headers to see what's happening
+                local headers
+                headers=$(curl -I -s -k -L --connect-timeout 5 -m 10 "${td_url}" 2>&1)
+                http_code=$(curl -s -o /dev/null -w "%{http_code}" -k -L --connect-timeout 5 -m 10 "${td_url}" 2>&1)
+                printf "  HTTP Code: %s\n" "${http_code}"
+                if [ "${http_code}" = "000" ]; then
+                    printf "  Connection failed. Trying verbose mode:\n"
+                    curl -v -s -k -L --connect-timeout 5 -m 10 "${td_url}" 2>&1 | head -20 || true
+                fi
+                printf "  "
+            else
+                # Normal mode - just get HTTP code
+                http_code=$(curl -s -o /dev/null -w "%{http_code}" -k -L --connect-timeout 5 -m 10 "${td_url}" 2>/dev/null)
             fi
 
             if echo "${http_code}" | grep -q "200\|401\|403"; then
