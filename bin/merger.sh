@@ -1200,30 +1200,30 @@ cmd_validate() {
         # Test Topdesk API
         printf "Testing Topdesk API connection... "
         if [ -n "${TOPDESK_URL}" ] && command -v topdesk >/dev/null 2>&1; then
-            # Create temporary config file for topdesk (INI format for --config parameter)
-            local temp_td_config="${TMP_DIR:-/tmp}/topdesk_test_$$.ini"
+            # Create temporary config file for topdesk (shell format with --config parameter)
+            local temp_td_config="${TMP_DIR:-/tmp}/topdesk_test_$$.sh"
 
-            # Create the temp config in INI format that topdesk expects
+            # Create the temp config in shell format that topdesk expects
             {
-                echo "[topdesk]"
-                echo "url = ${TOPDESK_URL:-}"
+                echo "#!/bin/sh"
+                echo "# Temporary topdesk config for asset-merger-engine"
+                echo "export TOPDESK_URL='${TOPDESK_URL:-}'"
                 if [ -n "${TOPDESK_API_TOKEN:-}" ]; then
-                    echo "api_key = ${TOPDESK_API_TOKEN}"
+                    echo "export TOPDESK_API_TOKEN='${TOPDESK_API_TOKEN}'"
                 else
-                    echo "username = ${TOPDESK_USER:-}"
-                    echo "password = ${TOPDESK_PASSWORD:-}"
+                    echo "export TOPDESK_USER='${TOPDESK_USER:-}'"
+                    echo "export TOPDESK_PASSWORD='${TOPDESK_PASSWORD:-}'"
                 fi
-                # Map VERIFY_SSL to verify_ssl setting
+                # Map VERIFY_SSL to TOPDESK_VERIFY_SSL
                 if [ "${VERIFY_SSL:-true}" = "false" ]; then
-                    echo "verify_ssl = false"
+                    echo "export TOPDESK_VERIFY_SSL='false'"
                 else
-                    echo "verify_ssl = true"
+                    echo "export TOPDESK_VERIFY_SSL='true'"
                 fi
-                echo "timeout = ${TOPDESK_TIMEOUT:-${CONNECT_TIMEOUT:-30}}"
-                echo ""
-                echo "[output]"
-                echo "format = json"
+                echo "export TOPDESK_TIMEOUT='${TOPDESK_TIMEOUT:-${CONNECT_TIMEOUT:-30}}'"
+                echo "export TOPDESK_FORMAT='json'"
             } > "${temp_td_config}"
+            chmod +x "${temp_td_config}"
 
             # Also export as environment variables as fallback
             export TOPDESK_URL="${TOPDESK_URL:-}"
@@ -1367,28 +1367,28 @@ cmd_validate() {
             if command -v topdesk >/dev/null 2>&1; then
                 printf "\n%bTopdesk CLI Diagnostics:%b\n" "${CYAN}" "${NC}"
 
-                # Create temporary config file for topdesk diagnostics (INI format)
-                local temp_td_config="${TMP_DIR:-/tmp}/topdesk_doctor_$$.ini"
+                # Create temporary config file for topdesk diagnostics (shell format)
+                local temp_td_config="${TMP_DIR:-/tmp}/topdesk_doctor_$$.sh"
                 {
-                    echo "[topdesk]"
-                    echo "url = ${TOPDESK_URL:-}"
+                    echo "#!/bin/sh"
+                    echo "# Temporary topdesk config for asset-merger-engine diagnostics"
+                    echo "export TOPDESK_URL='${TOPDESK_URL:-}'"
                     if [ -n "${TOPDESK_API_TOKEN:-}" ]; then
-                        echo "api_key = ${TOPDESK_API_TOKEN}"
+                        echo "export TOPDESK_API_TOKEN='${TOPDESK_API_TOKEN}'"
                     else
-                        echo "username = ${TOPDESK_USER:-}"
-                        echo "password = ${TOPDESK_PASSWORD:-}"
+                        echo "export TOPDESK_USER='${TOPDESK_USER:-}'"
+                        echo "export TOPDESK_PASSWORD='${TOPDESK_PASSWORD:-}'"
                     fi
-                    # Map VERIFY_SSL to verify_ssl setting
+                    # Map VERIFY_SSL to TOPDESK_VERIFY_SSL
                     if [ "${VERIFY_SSL:-true}" = "false" ]; then
-                        echo "verify_ssl = false"
+                        echo "export TOPDESK_VERIFY_SSL='false'"
                     else
-                        echo "verify_ssl = true"
+                        echo "export TOPDESK_VERIFY_SSL='true'"
                     fi
-                    echo "timeout = ${TOPDESK_TIMEOUT:-${CONNECT_TIMEOUT:-30}}"
-                    echo ""
-                    echo "[output]"
-                    echo "format = json"
+                    echo "export TOPDESK_TIMEOUT='${TOPDESK_TIMEOUT:-${CONNECT_TIMEOUT:-30}}'"
+                    echo "export TOPDESK_FORMAT='json'"
                 } > "${temp_td_config}"
+                chmod +x "${temp_td_config}"
 
                 printf "Using temporary config: %s\n" "${temp_td_config}"
                 printf "%s\n" "----------------------------------------"
@@ -1453,21 +1453,27 @@ cmd_validate() {
                         topdesk --config "${temp_td_config}" config list 2>&1 || printf "topdesk config list failed\n"
                         printf "%s\n" "----------------------------------------"
                     else
-                        # Fallback: show our configuration manually from INI file
+                        # Fallback: show our configuration manually from shell file
                         printf "Showing configuration from temporary config file:\n"
                         printf "%s\n" "----------------------------------------"
                         if [ -f "${temp_td_config}" ]; then
-                            # Display the INI file content with masked password
+                            # Display the shell file content with masked password
                             while IFS= read -r line; do
-                                if echo "$line" | grep -q "^password = "; then
+                                if echo "$line" | grep -q "^export TOPDESK_PASSWORD="; then
                                     # Mask the password
-                                    local pass_value=$(echo "$line" | sed 's/^password = //')
-                                    if [ -n "$pass_value" ]; then
+                                    local pass_value=$(echo "$line" | sed "s/^export TOPDESK_PASSWORD=['\"]\(.*\)['\"]$/\1/")
+                                    if [ -n "$pass_value" ] && [ "$pass_value" != "export TOPDESK_PASSWORD=" ]; then
                                         local masked=$(echo "$pass_value" | sed 's/^\(...\).*/\1***/')
-                                        printf "password = %s\n" "$masked"
+                                        printf "export TOPDESK_PASSWORD='%s'\n" "$masked"
                                     else
-                                        printf "password = \n"
+                                        printf "export TOPDESK_PASSWORD=''\n"
                                     fi
+                                elif echo "$line" | grep -q "^#!/bin/sh"; then
+                                    # Skip shebang in display
+                                    continue
+                                elif echo "$line" | grep -q "^#"; then
+                                    # Skip comments in display
+                                    continue
                                 else
                                     printf "%s\n" "$line"
                                 fi
