@@ -1106,14 +1106,29 @@ cmd_validate() {
         # Test Zabbix using zbx CLI
         printf "Testing Zabbix API connection... "
         if [ -n "${ZABBIX_URL}" ] && command -v zbx >/dev/null 2>&1; then
-            # Export environment for zbx
-            export ZABBIX_URL="${ZABBIX_URL:-}"
-            export ZABBIX_USER="${ZABBIX_USER:-}"
-            export ZABBIX_PASSWORD="${ZABBIX_PASSWORD:-}"
-            export ZABBIX_API_TOKEN="${ZABBIX_API_TOKEN:-}"
+            # Create temporary config file for zbx to ensure our config takes precedence
+            local temp_zbx_config="${TMP_DIR:-/tmp}/zbx_test_$$.sh"
+
+            # Create the temp config based on our settings (zbx uses shell format)
+            {
+                echo "# Temporary zbx config for testing"
+                echo "export ZABBIX_URL='${ZABBIX_URL}'"
+                if [ -n "${ZABBIX_API_TOKEN:-}" ]; then
+                    echo "export ZABBIX_API_TOKEN='${ZABBIX_API_TOKEN}'"
+                else
+                    echo "export ZABBIX_USER='${ZABBIX_USER:-}'"
+                    echo "export ZABBIX_PASS='${ZABBIX_PASSWORD:-}'"
+                fi
+                echo "export ZABBIX_VERIFY_TLS=true"
+                echo "export ZABBIX_CURL_TIMEOUT=30"
+            } > "${temp_zbx_config}"
+
+            # Set ZBX_CONFIG to use our temp file
+            export ZBX_CONFIG="${temp_zbx_config}"
 
             if [ "${DEBUG}" = "1" ]; then
-                printf "\n  Testing with: zbx ping (using configured auth)\n"
+                printf "\n  Testing with: zbx ping (using our config)\n"
+                printf "  Config file: %s\n" "${temp_zbx_config}"
                 printf "  URL: %s\n" "${ZABBIX_URL}"
                 if [ -n "${ZABBIX_API_TOKEN:-}" ]; then
                     printf "  Auth: API Token\n"
@@ -1127,7 +1142,7 @@ cmd_validate() {
             local test_result
             if [ "${DEBUG}" = "1" ]; then
                 # Show full output in debug mode
-                printf "Running: zbx ping\n"
+                printf "Running: zbx ping (with ZBX_CONFIG=%s)\n" "${temp_zbx_config}"
                 if zbx ping 2>&1; then
                     test_result=0
                     printf "  "
@@ -1159,6 +1174,10 @@ cmd_validate() {
                 fi
             fi
 
+            # Clean up temp config
+            rm -f "${temp_zbx_config}"
+            unset ZBX_CONFIG
+
             if [ ${test_result} -eq 0 ]; then
                 printf "%bOK%b\n" "${GREEN}" "${NC}"
             else
@@ -1176,7 +1195,30 @@ cmd_validate() {
         # Test Topdesk API
         printf "Testing Topdesk API connection... "
         if [ -n "${TOPDESK_URL}" ] && command -v topdesk >/dev/null 2>&1; then
-            # Export environment for topdesk
+            # Create temporary config file for topdesk to ensure our config takes precedence
+            local temp_td_config="${TMP_DIR:-/tmp}/topdesk_test_$$.sh"
+
+            # Create the temp config based on our settings (assuming shell format like zbx)
+            {
+                echo "#!/bin/sh"
+                echo "# Temporary topdesk config for testing"
+                echo "export TOPDESK_URL='${TOPDESK_URL:-}'"
+                if [ -n "${TOPDESK_API_TOKEN:-}" ]; then
+                    echo "export TOPDESK_API_TOKEN='${TOPDESK_API_TOKEN}'"
+                else
+                    echo "export TOPDESK_USER='${TOPDESK_USER:-}'"
+                    echo "export TOPDESK_PASSWORD='${TOPDESK_PASSWORD:-}'"
+                fi
+                echo "export TOPDESK_VERIFY_SSL=true"
+                echo "export TOPDESK_TIMEOUT=30"
+            } > "${temp_td_config}"
+            chmod +x "${temp_td_config}"
+
+            # Check if topdesk supports a config environment variable
+            # If not, we'll just export the variables directly
+            export TOPDESK_CONFIG="${temp_td_config}"
+
+            # Also export directly in case topdesk doesn't use TOPDESK_CONFIG
             export TOPDESK_URL="${TOPDESK_URL:-}"
             export TOPDESK_USER="${TOPDESK_USER:-}"
             export TOPDESK_PASSWORD="${TOPDESK_PASSWORD:-}"
@@ -1230,6 +1272,10 @@ cmd_validate() {
                     printf "  Note: Topdesk CLI found but test commands failed\n"
                 fi
             fi
+
+            # Clean up temp config
+            rm -f "${temp_td_config}"
+            unset TOPDESK_CONFIG
         elif [ -n "${TOPDESK_URL}" ]; then
             # Fallback to basic HTTP check if no CLI
             local td_url="${TOPDESK_URL}"
@@ -1262,16 +1308,31 @@ cmd_validate() {
             # Run zbx doctor if available
             if command -v zbx >/dev/null 2>&1; then
                 printf "\n%bZabbix CLI Doctor:%b\n" "${CYAN}" "${NC}"
-                printf "Running: zbx doctor\n"
+
+                # Create temporary config file for zbx doctor to use our settings (zbx uses shell format)
+                local temp_zbx_config="${TMP_DIR:-/tmp}/zbx_doctor_$$.sh"
+                {
+                    echo "#!/bin/sh"
+                    echo "# Temporary zbx config for doctor diagnostics"
+                    echo "export ZABBIX_URL='${ZABBIX_URL:-}'"
+                    if [ -n "${ZABBIX_API_TOKEN:-}" ]; then
+                        echo "export ZABBIX_API_TOKEN='${ZABBIX_API_TOKEN}'"
+                    else
+                        echo "export ZABBIX_USER='${ZABBIX_USER:-}'"
+                        # zbx uses ZABBIX_PASS, not ZABBIX_PASSWORD
+                        echo "export ZABBIX_PASS='${ZABBIX_PASSWORD:-}'"
+                    fi
+                    echo "export ZABBIX_VERIFY_TLS=true"
+                    echo "export ZABBIX_CURL_TIMEOUT=30"
+                } > "${temp_zbx_config}"
+                chmod +x "${temp_zbx_config}"
+
+                export ZBX_CONFIG="${temp_zbx_config}"
+
+                printf "Using temporary config: %s\n" "${temp_zbx_config}"
                 printf "%s\n" "----------------------------------------"
 
-                # Prepare environment for zbx (use default empty values if not set)
-                export ZABBIX_URL="${ZABBIX_URL:-}"
-                export ZABBIX_USER="${ZABBIX_USER:-}"
-                export ZABBIX_PASSWORD="${ZABBIX_PASSWORD:-}"
-                export ZABBIX_API_TOKEN="${ZABBIX_API_TOKEN:-}"
-
-                # Run doctor command
+                # Run doctor command with our config via environment variable
                 zbx doctor 2>&1 || printf "zbx doctor command failed with exit code: $?\n"
                 printf "%s\n" "----------------------------------------"
 
@@ -1281,6 +1342,10 @@ cmd_validate() {
                 printf "%s\n" "----------------------------------------"
                 zbx config list 2>&1 || printf "zbx config list failed with exit code: $?\n"
                 printf "%s\n" "----------------------------------------"
+
+                # Clean up temp config
+                rm -f "${temp_zbx_config}"
+                unset ZBX_CONFIG
             else
                 printf "\nzbx CLI not found - skipping doctor check\n"
             fi
@@ -1289,7 +1354,27 @@ cmd_validate() {
             if command -v topdesk >/dev/null 2>&1; then
                 printf "\n%bTopdesk CLI Diagnostics:%b\n" "${CYAN}" "${NC}"
 
-                # Prepare environment for topdesk (use default empty values if not set)
+                # Create temporary config file for topdesk diagnostics (similar to zbx approach)
+                local temp_td_config="${TMP_DIR:-/tmp}/topdesk_doctor_$$.sh"
+                {
+                    echo "#!/bin/sh"
+                    echo "# Temporary topdesk config for diagnostics"
+                    echo "export TOPDESK_URL='${TOPDESK_URL:-}'"
+                    if [ -n "${TOPDESK_API_TOKEN:-}" ]; then
+                        echo "export TOPDESK_API_TOKEN='${TOPDESK_API_TOKEN}'"
+                    else
+                        echo "export TOPDESK_USER='${TOPDESK_USER:-}'"
+                        echo "export TOPDESK_PASSWORD='${TOPDESK_PASSWORD:-}'"
+                    fi
+                    echo "export TOPDESK_VERIFY_SSL=true"
+                    echo "export TOPDESK_TIMEOUT=30"
+                } > "${temp_td_config}"
+                chmod +x "${temp_td_config}"
+
+                # Set config if supported, otherwise just export variables
+                export TOPDESK_CONFIG="${temp_td_config}"
+
+                # Also export directly for compatibility
                 export TOPDESK_URL="${TOPDESK_URL:-}"
                 export TOPDESK_USER="${TOPDESK_USER:-}"
                 export TOPDESK_PASSWORD="${TOPDESK_PASSWORD:-}"
@@ -1339,6 +1424,10 @@ cmd_validate() {
                     topdesk --version 2>&1 || printf "topdesk version check failed\n"
                     printf "%s\n" "----------------------------------------"
                 fi
+
+                # Clean up temp config
+                rm -f "${temp_td_config}"
+                unset TOPDESK_CONFIG
             else
                 printf "\ntopdesk CLI not found - skipping diagnostic check\n"
             fi
