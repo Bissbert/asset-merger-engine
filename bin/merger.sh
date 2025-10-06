@@ -192,9 +192,16 @@ usage() {
     printf "        copy SRC DEST      Copy a profile\n"
     printf "        wizard             Launch interactive wizard\n"
     printf "\n"
+    printf "    %bvalidate%b [OPTIONS]\n" "${CYAN}" "${NC}"
+    printf "        --verbose, -v      Show configuration details\n"
+    printf "        --debug, -d        Show debug connection info\n"
+    printf "\n"
     printf "%bEXAMPLES:%b\n" "${BOLD}" "${NC}"
     printf "    # Validate system configuration\n"
     printf "    %s validate\n" "${SCRIPT_NAME}"
+    printf "\n"
+    printf "    # Validate with debug information\n"
+    printf "    %s validate --verbose\n" "${SCRIPT_NAME}"
     printf "\n"
     printf "    # Full interactive synchronization\n"
     printf "    %s sync\n" "${SCRIPT_NAME}"
@@ -504,6 +511,15 @@ cmd_fetch() {
                 ;;
             --cache)
                 use_cache=1
+                shift
+                ;;
+            -v|--verbose)
+                VERBOSE=1
+                shift
+                ;;
+            -d|--debug)
+                DEBUG=1
+                VERBOSE=1
                 shift
                 ;;
             *)
@@ -869,6 +885,15 @@ cmd_sync() {
                 profile="$2"
                 shift 2
                 ;;
+            -v|--verbose)
+                VERBOSE=1
+                shift
+                ;;
+            -d|--debug)
+                DEBUG=1
+                VERBOSE=1
+                shift
+                ;;
             *)
                 shift
                 ;;
@@ -928,6 +953,24 @@ cmd_sync() {
 
 # Command: validate
 cmd_validate() {
+    # Parse command-specific options
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            -v|--verbose)
+                VERBOSE=1
+                shift
+                ;;
+            -d|--debug)
+                DEBUG=1
+                VERBOSE=1
+                shift
+                ;;
+            *)
+                shift
+                ;;
+        esac
+    done
+
     log_info "=== Starting Validation ==="
     log_debug "Starting cmd_validate function" || true
 
