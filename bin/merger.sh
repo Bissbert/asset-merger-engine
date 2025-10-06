@@ -1156,6 +1156,80 @@ cmd_validate() {
         else
             printf "%bUNCONFIGURED%b\n" "${YELLOW}" "${NC}"
         fi
+
+        # Run CLI doctor commands in debug mode
+        if [ "${DEBUG}" = "1" ]; then
+            printf "\n%bCLI Tool Diagnostics:%b\n" "${BOLD}" "${NC}"
+
+            # Run zbx doctor if available
+            if command -v zbx >/dev/null 2>&1; then
+                printf "\n%bZabbix CLI Doctor:%b\n" "${CYAN}" "${NC}"
+                printf "Running: zbx doctor\n"
+                printf "%s\n" "----------------------------------------"
+
+                # Prepare environment for zbx
+                export ZABBIX_URL="${ZABBIX_URL}"
+                export ZABBIX_USER="${ZABBIX_USER}"
+                export ZABBIX_PASSWORD="${ZABBIX_PASSWORD}"
+                export ZABBIX_API_TOKEN="${ZABBIX_API_TOKEN}"
+
+                # Run doctor command
+                if zbx doctor 2>&1; then
+                    printf "%s\n" "----------------------------------------"
+                else
+                    printf "zbx doctor failed or not available\n"
+                    printf "%s\n" "----------------------------------------"
+                fi
+
+                # Also show zbx config if available
+                printf "\n%bZabbix CLI Configuration:%b\n" "${CYAN}" "${NC}"
+                printf "Running: zbx config list\n"
+                printf "%s\n" "----------------------------------------"
+                if zbx config list 2>&1; then
+                    printf "%s\n" "----------------------------------------"
+                else
+                    printf "zbx config list not available\n"
+                    printf "%s\n" "----------------------------------------"
+                fi
+            else
+                printf "\nzbx CLI not found - skipping doctor check\n"
+            fi
+
+            # Run topdesk diagnostics if available
+            if command -v topdesk >/dev/null 2>&1; then
+                printf "\n%bTopdesk CLI Diagnostics:%b\n" "${CYAN}" "${NC}"
+
+                # Prepare environment for topdesk
+                export TOPDESK_URL="${TOPDESK_URL}"
+                export TOPDESK_USER="${TOPDESK_USER}"
+                export TOPDESK_PASSWORD="${TOPDESK_PASSWORD}"
+                export TOPDESK_API_TOKEN="${TOPDESK_API_TOKEN}"
+
+                # Try various diagnostic commands
+                if topdesk doctor >/dev/null 2>&1; then
+                    printf "Running: topdesk doctor\n"
+                    printf "%s\n" "----------------------------------------"
+                    topdesk doctor 2>&1
+                    printf "%s\n" "----------------------------------------"
+                elif topdesk config >/dev/null 2>&1; then
+                    printf "Running: topdesk config\n"
+                    printf "%s\n" "----------------------------------------"
+                    topdesk config 2>&1
+                    printf "%s\n" "----------------------------------------"
+                elif topdesk test >/dev/null 2>&1; then
+                    printf "Running: topdesk test\n"
+                    printf "%s\n" "----------------------------------------"
+                    topdesk test 2>&1
+                    printf "%s\n" "----------------------------------------"
+                else
+                    printf "No diagnostic commands available for topdesk CLI\n"
+                fi
+            else
+                printf "\ntopdesk CLI not found - skipping diagnostic check\n"
+            fi
+
+            printf "\n"
+        fi
     fi
 
     # Use Python validator for detailed validation
