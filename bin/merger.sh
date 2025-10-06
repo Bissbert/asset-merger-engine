@@ -1167,11 +1167,11 @@ cmd_validate() {
                 printf "Running: zbx doctor\n"
                 printf "%s\n" "----------------------------------------"
 
-                # Prepare environment for zbx
-                export ZABBIX_URL="${ZABBIX_URL}"
-                export ZABBIX_USER="${ZABBIX_USER}"
-                export ZABBIX_PASSWORD="${ZABBIX_PASSWORD}"
-                export ZABBIX_API_TOKEN="${ZABBIX_API_TOKEN}"
+                # Prepare environment for zbx (use default empty values if not set)
+                export ZABBIX_URL="${ZABBIX_URL:-}"
+                export ZABBIX_USER="${ZABBIX_USER:-}"
+                export ZABBIX_PASSWORD="${ZABBIX_PASSWORD:-}"
+                export ZABBIX_API_TOKEN="${ZABBIX_API_TOKEN:-}"
 
                 # Run doctor command
                 zbx doctor 2>&1 || printf "zbx doctor command failed with exit code: $?\n"
@@ -1191,11 +1191,11 @@ cmd_validate() {
             if command -v topdesk >/dev/null 2>&1; then
                 printf "\n%bTopdesk CLI Diagnostics:%b\n" "${CYAN}" "${NC}"
 
-                # Prepare environment for topdesk
-                export TOPDESK_URL="${TOPDESK_URL}"
-                export TOPDESK_USER="${TOPDESK_USER}"
-                export TOPDESK_PASSWORD="${TOPDESK_PASSWORD}"
-                export TOPDESK_API_TOKEN="${TOPDESK_API_TOKEN}"
+                # Prepare environment for topdesk (use default empty values if not set)
+                export TOPDESK_URL="${TOPDESK_URL:-}"
+                export TOPDESK_USER="${TOPDESK_USER:-}"
+                export TOPDESK_PASSWORD="${TOPDESK_PASSWORD:-}"
+                export TOPDESK_API_TOKEN="${TOPDESK_API_TOKEN:-}"
 
                 # Try various diagnostic commands
                 # First check which commands are available
