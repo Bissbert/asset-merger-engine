@@ -1119,7 +1119,12 @@ cmd_validate() {
                     echo "export ZABBIX_USER='${ZABBIX_USER:-}'"
                     echo "export ZABBIX_PASS='${ZABBIX_PASSWORD:-}'"
                 fi
-                echo "export ZABBIX_VERIFY_TLS=true"
+                # Map VERIFY_SSL to ZABBIX_VERIFY_TLS (zbx expects 0 or 1)
+                if [ "${VERIFY_SSL:-true}" = "false" ]; then
+                    echo "export ZABBIX_VERIFY_TLS=0"
+                else
+                    echo "export ZABBIX_VERIFY_TLS=1"
+                fi
                 echo "export ZABBIX_CURL_TIMEOUT=30"
             } > "${temp_zbx_config}"
 
@@ -1322,7 +1327,12 @@ cmd_validate() {
                         # zbx uses ZABBIX_PASS, not ZABBIX_PASSWORD
                         echo "export ZABBIX_PASS='${ZABBIX_PASSWORD:-}'"
                     fi
-                    echo "export ZABBIX_VERIFY_TLS=true"
+                    # Map VERIFY_SSL to ZABBIX_VERIFY_TLS (zbx expects 0 or 1)
+                    if [ "${VERIFY_SSL:-true}" = "false" ]; then
+                        echo "export ZABBIX_VERIFY_TLS=0"
+                    else
+                        echo "export ZABBIX_VERIFY_TLS=1"
+                    fi
                     echo "export ZABBIX_CURL_TIMEOUT=30"
                 } > "${temp_zbx_config}"
                 chmod +x "${temp_zbx_config}"
