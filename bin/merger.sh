@@ -1447,6 +1447,28 @@ cmd_validate() {
                     printf "%s\n" "----------------------------------------"
                 fi
 
+                # Always show our Topdesk configuration for debugging
+                printf "\n%bTopdesk Configuration (from asset-merger-engine):%b\n" "${CYAN}" "${NC}"
+                printf "Using temporary config: %s\n" "${temp_td_config}"
+                printf "%s\n" "----------------------------------------"
+                printf "TOPDESK_URL=%s\n" "${TOPDESK_URL:-}"
+                printf "TOPDESK_USER=%s\n" "${TOPDESK_USER:-}"
+                if [ -n "${TOPDESK_PASSWORD:-}" ]; then
+                    # Mask password like zbx does
+                    local masked_pass=$(printf "%s" "${TOPDESK_PASSWORD}" | sed 's/^\(...\).*/\1***/')
+                    printf "TOPDESK_PASSWORD=%s\n" "${masked_pass}"
+                else
+                    printf "TOPDESK_PASSWORD=\n"
+                fi
+                printf "TOPDESK_API_TOKEN=%s\n" "${TOPDESK_API_TOKEN:-}"
+                if [ "${VERIFY_SSL:-true}" = "false" ]; then
+                    printf "TOPDESK_VERIFY_SSL=false\n"
+                else
+                    printf "TOPDESK_VERIFY_SSL=true\n"
+                fi
+                printf "TOPDESK_TIMEOUT=%s\n" "${TOPDESK_TIMEOUT:-${CONNECT_TIMEOUT:-30}}"
+                printf "%s\n" "----------------------------------------"
+
                 # Clean up temp config
                 rm -f "${temp_td_config}"
                 unset TOPDESK_CONFIG
