@@ -1214,8 +1214,14 @@ cmd_validate() {
                     echo "export TOPDESK_USER='${TOPDESK_USER:-}'"
                     echo "export TOPDESK_PASSWORD='${TOPDESK_PASSWORD:-}'"
                 fi
-                echo "export TOPDESK_VERIFY_SSL=true"
-                echo "export TOPDESK_TIMEOUT=30"
+                # Map VERIFY_SSL to TOPDESK_VERIFY_SSL (use same format as engine config)
+                if [ "${VERIFY_SSL:-true}" = "false" ]; then
+                    echo "export TOPDESK_VERIFY_SSL=false"
+                else
+                    echo "export TOPDESK_VERIFY_SSL=true"
+                fi
+                # Use configured timeout or default to 30
+                echo "export TOPDESK_TIMEOUT=${TOPDESK_TIMEOUT:-${CONNECT_TIMEOUT:-30}}"
             } > "${temp_td_config}"
             chmod +x "${temp_td_config}"
 
@@ -1376,8 +1382,14 @@ cmd_validate() {
                         echo "export TOPDESK_USER='${TOPDESK_USER:-}'"
                         echo "export TOPDESK_PASSWORD='${TOPDESK_PASSWORD:-}'"
                     fi
-                    echo "export TOPDESK_VERIFY_SSL=true"
-                    echo "export TOPDESK_TIMEOUT=30"
+                    # Map VERIFY_SSL to TOPDESK_VERIFY_SSL (use same format as engine config)
+                    if [ "${VERIFY_SSL:-true}" = "false" ]; then
+                        echo "export TOPDESK_VERIFY_SSL=false"
+                    else
+                        echo "export TOPDESK_VERIFY_SSL=true"
+                    fi
+                    # Use configured timeout or default to 30
+                    echo "export TOPDESK_TIMEOUT=${TOPDESK_TIMEOUT:-${CONNECT_TIMEOUT:-30}}"
                 } > "${temp_td_config}"
                 chmod +x "${temp_td_config}"
 
