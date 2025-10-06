@@ -1235,33 +1235,39 @@ cmd_validate() {
                 printf "  "
             fi
 
-            # Try topdesk test commands (use --config parameter)
+            # Try topdesk ping command (use --config parameter)
             local test_result
             if [ "${DEBUG}" = "1" ]; then
-                # Try various test commands with our config
-                printf "Trying topdesk commands with --config...\n"
-                printf "  Config file: %s\n  " "${temp_td_config}"
-                if topdesk --config "${temp_td_config}" test >/dev/null 2>&1; then
+                # Use ping to test connectivity
+                printf "Running: topdesk ping (with config %s)\n" "${temp_td_config}"
+                if topdesk --config "${temp_td_config}" ping 2>&1; then
                     test_result=0
-                elif topdesk --config "${temp_td_config}" version >/dev/null 2>&1; then
-                    test_result=0
-                elif topdesk --config "${temp_td_config}" --version >/dev/null 2>&1; then
-                    test_result=0
+                    printf "  "
                 else
-                    test_result=1
-                    printf "  No working test command found\n"
+                    test_result=$?
+                    printf "  topdesk ping failed with exit code: %s\n" "${test_result}"
+                    # Try version as alternate test
+                    printf "  Trying: topdesk version\n"
+                    if topdesk --config "${temp_td_config}" version 2>&1; then
+                        test_result=0
+                        printf "  "
+                    else
+                        test_result=$?
+                        printf "  topdesk version failed with exit code: %s\n" "${test_result}"
+                    fi
+                    printf "  "
                 fi
-                printf "  "
             else
-                # Silent mode - use --config parameter
-                if topdesk --config "${temp_td_config}" test >/dev/null 2>&1; then
-                    test_result=0
-                elif topdesk --config "${temp_td_config}" version >/dev/null 2>&1; then
-                    test_result=0
-                elif topdesk --config "${temp_td_config}" --version >/dev/null 2>&1; then
+                # Silent mode - use ping command
+                if topdesk --config "${temp_td_config}" ping >/dev/null 2>&1; then
                     test_result=0
                 else
-                    test_result=1
+                    # Try version as fallback
+                    if topdesk --config "${temp_td_config}" version >/dev/null 2>&1; then
+                        test_result=0
+                    else
+                        test_result=1
+                    fi
                 fi
             fi
 
@@ -1387,11 +1393,15 @@ cmd_validate() {
                 # Try various diagnostic commands
                 # First check which commands are available (using --config)
                 local topdesk_has_doctor=0
+                local topdesk_has_ping=0
                 local topdesk_has_config=0
                 local topdesk_has_test=0
 
                 if topdesk --config "${temp_td_config}" doctor --help >/dev/null 2>&1; then
                     topdesk_has_doctor=1
+                fi
+                if topdesk --config "${temp_td_config}" ping --help >/dev/null 2>&1; then
+                    topdesk_has_ping=1
                 fi
                 if topdesk --config "${temp_td_config}" config --help >/dev/null 2>&1; then
                     topdesk_has_config=1
@@ -1407,6 +1417,13 @@ cmd_validate() {
                     printf "%s\n" "----------------------------------------"
                 fi
 
+                if [ $topdesk_has_ping -eq 1 ]; then
+                    printf "\nRunning: topdesk --config %s ping\n" "${temp_td_config}"
+                    printf "%s\n" "----------------------------------------"
+                    topdesk --config "${temp_td_config}" ping 2>&1 || printf "topdesk ping failed with exit code: $?\n"
+                    printf "%s\n" "----------------------------------------"
+                fi
+
                 # Skip generic config command - we'll show config list later which is more useful
 
                 if [ $topdesk_has_test -eq 1 ]; then
@@ -1416,7 +1433,7 @@ cmd_validate() {
                     printf "%s\n" "----------------------------------------"
                 fi
 
-                if [ $topdesk_has_doctor -eq 0 ] && [ $topdesk_has_test -eq 0 ]; then
+                if [ $topdesk_has_doctor -eq 0 ] && [ $topdesk_has_ping -eq 0 ] && [ $topdesk_has_test -eq 0 ]; then
                     printf "No diagnostic commands available for topdesk CLI\n"
                     printf "Trying: topdesk --config %s --version\n" "${temp_td_config}"
                     printf "%s\n" "----------------------------------------"
