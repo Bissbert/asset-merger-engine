@@ -67,6 +67,9 @@ check:
 install: check
 	@echo "Installing asset-merger-engine..."
 
+	# Note: bin/merger.sh is processed with sed and installed as asset-merger-engine
+	# Test files, demo files, and README files are intentionally excluded from installation
+
 	# Create directories
 	$(MKDIR) $(BINDIR)
 	$(MKDIR) $(LIBDIR)
@@ -110,7 +113,7 @@ install: check
 	$(INSTALL) -m 755 lib/topdesk_cli_wrapper.sh $(LIBDIR)/
 	$(INSTALL) -m 644 lib/profile_manager.sh $(LIBDIR)/
 
-	# Install Python modules
+	# Install Python modules (exclude test/demo files)
 	$(INSTALL) -m 644 lib/validator.py $(LIBDIR)/
 	$(INSTALL) -m 644 lib/sorter.py $(LIBDIR)/
 	$(INSTALL) -m 644 lib/apply.py $(LIBDIR)/
@@ -177,19 +180,19 @@ uninstall:
 user-install: check
 	@echo "Installing asset-merger-engine for current user..."
 
-	# Create user directories
+	# Create user directories following XDG Base Directory Specification
 	@mkdir -p $$HOME/.local/bin
 	@mkdir -p $$HOME/.local/lib/asset-merger-engine
 	@mkdir -p $$HOME/.config/asset-merger-engine
-	@mkdir -p $$HOME/.local/share/asset-merger-engine/cache
 	@mkdir -p $$HOME/.local/share/asset-merger-engine/output/processed
 	@mkdir -p $$HOME/.local/share/asset-merger-engine/output/failed
 	@mkdir -p $$HOME/.local/share/asset-merger-engine/output/reports
 	@mkdir -p $$HOME/.local/share/asset-merger-engine/output/differences
 	@mkdir -p $$HOME/.local/share/asset-merger-engine/output/apply
-	@mkdir -p $$HOME/.local/share/asset-merger-engine/tmp
-	@mkdir -p $$HOME/.local/share/asset-merger-engine/logs
-	@mkdir -p $$HOME/.local/share/asset-merger-engine/run
+	@mkdir -p $$HOME/.local/state/asset-merger-engine/logs
+	@mkdir -p $$HOME/.local/state/asset-merger-engine/run
+	@mkdir -p $$HOME/.cache/asset-merger-engine/tmp
+	@mkdir -p $$HOME/.cache/asset-merger-engine
 
 	# Install VERSION file
 	$(INSTALL) -m 644 VERSION $$HOME/.local/lib/asset-merger-engine/VERSION
@@ -216,7 +219,7 @@ user-install: check
 	$(INSTALL) -m 755 lib/topdesk_cli_wrapper.sh $$HOME/.local/lib/asset-merger-engine/
 	$(INSTALL) -m 644 lib/profile_manager.sh $$HOME/.local/lib/asset-merger-engine/
 
-	# Install Python modules
+	# Install Python modules (exclude test/demo files)
 	$(INSTALL) -m 644 lib/validator.py $$HOME/.local/lib/asset-merger-engine/
 	$(INSTALL) -m 644 lib/sorter.py $$HOME/.local/lib/asset-merger-engine/
 	$(INSTALL) -m 644 lib/apply.py $$HOME/.local/lib/asset-merger-engine/
