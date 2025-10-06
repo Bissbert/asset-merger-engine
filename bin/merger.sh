@@ -1407,12 +1407,7 @@ cmd_validate() {
                     printf "%s\n" "----------------------------------------"
                 fi
 
-                if [ $topdesk_has_config -eq 1 ]; then
-                    printf "\nRunning: topdesk --config %s config\n" "${temp_td_config}"
-                    printf "%s\n" "----------------------------------------"
-                    topdesk --config "${temp_td_config}" config 2>&1 || printf "topdesk config failed with exit code: $?\n"
-                    printf "%s\n" "----------------------------------------"
-                fi
+                # Skip generic config command - we'll show config list later which is more useful
 
                 if [ $topdesk_has_test -eq 1 ]; then
                     printf "\nRunning: topdesk --config %s test\n" "${temp_td_config}"
@@ -1421,7 +1416,7 @@ cmd_validate() {
                     printf "%s\n" "----------------------------------------"
                 fi
 
-                if [ $topdesk_has_doctor -eq 0 ] && [ $topdesk_has_config -eq 0 ] && [ $topdesk_has_test -eq 0 ]; then
+                if [ $topdesk_has_doctor -eq 0 ] && [ $topdesk_has_test -eq 0 ]; then
                     printf "No diagnostic commands available for topdesk CLI\n"
                     printf "Trying: topdesk --config %s --version\n" "${temp_td_config}"
                     printf "%s\n" "----------------------------------------"
