@@ -1174,23 +1174,15 @@ cmd_validate() {
                 export ZABBIX_API_TOKEN="${ZABBIX_API_TOKEN}"
 
                 # Run doctor command
-                if zbx doctor 2>&1; then
-                    printf "%s\n" "----------------------------------------"
-                else
-                    printf "zbx doctor failed or not available\n"
-                    printf "%s\n" "----------------------------------------"
-                fi
+                zbx doctor 2>&1 || printf "zbx doctor command failed with exit code: $?\n"
+                printf "%s\n" "----------------------------------------"
 
                 # Also show zbx config if available
                 printf "\n%bZabbix CLI Configuration:%b\n" "${CYAN}" "${NC}"
                 printf "Running: zbx config list\n"
                 printf "%s\n" "----------------------------------------"
-                if zbx config list 2>&1; then
-                    printf "%s\n" "----------------------------------------"
-                else
-                    printf "zbx config list not available\n"
-                    printf "%s\n" "----------------------------------------"
-                fi
+                zbx config list 2>&1 || printf "zbx config list failed with exit code: $?\n"
+                printf "%s\n" "----------------------------------------"
             else
                 printf "\nzbx CLI not found - skipping doctor check\n"
             fi
@@ -1206,23 +1198,48 @@ cmd_validate() {
                 export TOPDESK_API_TOKEN="${TOPDESK_API_TOKEN}"
 
                 # Try various diagnostic commands
-                if topdesk doctor >/dev/null 2>&1; then
+                # First check which commands are available
+                local topdesk_has_doctor=0
+                local topdesk_has_config=0
+                local topdesk_has_test=0
+
+                if topdesk doctor --help >/dev/null 2>&1; then
+                    topdesk_has_doctor=1
+                fi
+                if topdesk config --help >/dev/null 2>&1; then
+                    topdesk_has_config=1
+                fi
+                if topdesk test --help >/dev/null 2>&1; then
+                    topdesk_has_test=1
+                fi
+
+                if [ $topdesk_has_doctor -eq 1 ]; then
                     printf "Running: topdesk doctor\n"
                     printf "%s\n" "----------------------------------------"
-                    topdesk doctor 2>&1
+                    topdesk doctor 2>&1 || printf "topdesk doctor failed with exit code: $?\n"
                     printf "%s\n" "----------------------------------------"
-                elif topdesk config >/dev/null 2>&1; then
-                    printf "Running: topdesk config\n"
+                fi
+
+                if [ $topdesk_has_config -eq 1 ]; then
+                    printf "\nRunning: topdesk config\n"
                     printf "%s\n" "----------------------------------------"
-                    topdesk config 2>&1
+                    topdesk config 2>&1 || printf "topdesk config failed with exit code: $?\n"
                     printf "%s\n" "----------------------------------------"
-                elif topdesk test >/dev/null 2>&1; then
-                    printf "Running: topdesk test\n"
+                fi
+
+                if [ $topdesk_has_test -eq 1 ]; then
+                    printf "\nRunning: topdesk test\n"
                     printf "%s\n" "----------------------------------------"
-                    topdesk test 2>&1
+                    topdesk test 2>&1 || printf "topdesk test failed with exit code: $?\n"
                     printf "%s\n" "----------------------------------------"
-                else
+                fi
+
+                if [ $topdesk_has_doctor -eq 0 ] && [ $topdesk_has_config -eq 0 ] && [ $topdesk_has_test -eq 0 ]; then
                     printf "No diagnostic commands available for topdesk CLI\n"
+                    printf "Trying: topdesk --version\n"
+                    printf "%s\n" "----------------------------------------"
+                    topdesk --version 2>&1 || printf "topdesk version check failed\n"
+                    printf "%s\n" "----------------------------------------"
                 fi
             else
                 printf "\ntopdesk CLI not found - skipping diagnostic check\n"
