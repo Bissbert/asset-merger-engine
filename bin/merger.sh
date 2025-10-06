@@ -1103,89 +1103,151 @@ cmd_validate() {
             printf "\n"
         fi
 
-        # Test Zabbix
-        printf "Testing Zabbix connection... "
-        if [ -n "${ZABBIX_URL}" ]; then
-            local zbx_url="${ZABBIX_URL}"
-            # Ensure proper API endpoint
-            if ! echo "${zbx_url}" | grep -q "/api_jsonrpc.php"; then
-                zbx_url="${zbx_url}/api_jsonrpc.php"
-            fi
+        # Test Zabbix using zbx CLI
+        printf "Testing Zabbix API connection... "
+        if [ -n "${ZABBIX_URL}" ] && command -v zbx >/dev/null 2>&1; then
+            # Export environment for zbx
+            export ZABBIX_URL="${ZABBIX_URL:-}"
+            export ZABBIX_USER="${ZABBIX_USER:-}"
+            export ZABBIX_PASSWORD="${ZABBIX_PASSWORD:-}"
+            export ZABBIX_API_TOKEN="${ZABBIX_API_TOKEN:-}"
 
             if [ "${DEBUG}" = "1" ]; then
-                printf "\n  Testing URL: %s\n  " "${zbx_url}"
+                printf "\n  Testing with: zbx ping (using configured auth)\n"
+                printf "  URL: %s\n" "${ZABBIX_URL}"
+                if [ -n "${ZABBIX_API_TOKEN:-}" ]; then
+                    printf "  Auth: API Token\n"
+                elif [ -n "${ZABBIX_USER:-}" ]; then
+                    printf "  Auth: User/Password (user: %s)\n" "${ZABBIX_USER}"
+                fi
+                printf "  "
             fi
 
-            # Use more robust curl options:
-            # -k: Allow insecure SSL (self-signed certs)
-            # -L: Follow redirects
-            # --connect-timeout 5: Set connection timeout
-            # -m 10: Maximum time for entire operation
-            local http_code
+            # Try zbx ping first (quickest test)
+            local test_result
+            if [ "${DEBUG}" = "1" ]; then
+                # Show full output in debug mode
+                printf "Running: zbx ping\n"
+                if zbx ping 2>&1; then
+                    test_result=0
+                    printf "  "
+                else
+                    test_result=$?
+                    printf "  zbx ping failed with exit code: %s\n" "${test_result}"
+                    # Try version as alternate test
+                    printf "  Trying: zbx version\n"
+                    if zbx version 2>&1; then
+                        test_result=0
+                        printf "  "
+                    else
+                        test_result=$?
+                        printf "  zbx version failed with exit code: %s\n" "${test_result}"
+                    fi
+                    printf "  "
+                fi
+            else
+                # Silent mode - just check if it works
+                if zbx ping >/dev/null 2>&1; then
+                    test_result=0
+                else
+                    # Try version as fallback
+                    if zbx version >/dev/null 2>&1; then
+                        test_result=0
+                    else
+                        test_result=1
+                    fi
+                fi
+            fi
+
+            if [ ${test_result} -eq 0 ]; then
+                printf "%bOK%b\n" "${GREEN}" "${NC}"
+            else
+                printf "%bFAILED%b\n" "${RED}" "${NC}"
+                if [ "${VERBOSE}" = "1" ] || [ "${DEBUG}" = "1" ]; then
+                    printf "  Hint: Check zbx doctor output above for details\n"
+                fi
+            fi
+        elif [ -z "${ZABBIX_URL}" ]; then
+            printf "%bUNCONFIGURED%b\n" "${YELLOW}" "${NC}"
+        else
+            printf "%bzbx CLI not found%b\n" "${YELLOW}" "${NC}"
+        fi
+
+        # Test Topdesk API
+        printf "Testing Topdesk API connection... "
+        if [ -n "${TOPDESK_URL}" ] && command -v topdesk >/dev/null 2>&1; then
+            # Export environment for topdesk
+            export TOPDESK_URL="${TOPDESK_URL:-}"
+            export TOPDESK_USER="${TOPDESK_USER:-}"
+            export TOPDESK_PASSWORD="${TOPDESK_PASSWORD:-}"
+            export TOPDESK_API_TOKEN="${TOPDESK_API_TOKEN:-}"
 
             if [ "${DEBUG}" = "1" ]; then
-                # In debug mode, show verbose curl output
-                printf "\n  Running: curl -I -s -k -L --connect-timeout 5 -m 10 '%s'\n" "${zbx_url}"
-                # Get headers to see what's happening
-                local headers
-                headers=$(curl -I -s -k -L --connect-timeout 5 -m 10 "${zbx_url}" 2>&1)
-                http_code=$(curl -s -o /dev/null -w "%{http_code}" -k -L --connect-timeout 5 -m 10 "${zbx_url}" 2>&1)
-                printf "  HTTP Code: %s\n" "${http_code}"
-                if [ "${http_code}" = "000" ]; then
-                    printf "  Connection failed. Trying verbose mode:\n"
-                    curl -v -s -k -L --connect-timeout 5 -m 10 "${zbx_url}" 2>&1 | head -20 || true
+                printf "\n  Testing with: topdesk test/version\n"
+                printf "  URL: %s\n" "${TOPDESK_URL}"
+                if [ -n "${TOPDESK_API_TOKEN:-}" ]; then
+                    printf "  Auth: API Token\n"
+                elif [ -n "${TOPDESK_USER:-}" ]; then
+                    printf "  Auth: User/Password (user: %s)\n" "${TOPDESK_USER}"
+                fi
+                printf "  "
+            fi
+
+            # Try topdesk test commands
+            local test_result
+            if [ "${DEBUG}" = "1" ]; then
+                # Try various test commands
+                printf "Trying topdesk commands...\n"
+                if topdesk test >/dev/null 2>&1; then
+                    test_result=0
+                elif topdesk version >/dev/null 2>&1; then
+                    test_result=0
+                elif topdesk --version >/dev/null 2>&1; then
+                    test_result=0
+                else
+                    test_result=1
+                    printf "  No working test command found\n"
                 fi
                 printf "  "
             else
-                # Normal mode - just get HTTP code
-                http_code=$(curl -s -o /dev/null -w "%{http_code}" -k -L --connect-timeout 5 -m 10 "${zbx_url}" 2>/dev/null)
+                # Silent mode
+                if topdesk test >/dev/null 2>&1; then
+                    test_result=0
+                elif topdesk version >/dev/null 2>&1; then
+                    test_result=0
+                elif topdesk --version >/dev/null 2>&1; then
+                    test_result=0
+                else
+                    test_result=1
+                fi
             fi
 
-            if echo "${http_code}" | grep -q "200\|401\|403"; then
-                printf "%bOK%b\n" "${GREEN}" "${NC}"
+            if [ ${test_result} -eq 0 ]; then
+                printf "%bCLI OK%b\n" "${GREEN}" "${NC}"
             else
-                printf "%bUNREACHABLE%b (HTTP %s)\n" "${YELLOW}" "${NC}" "${http_code}"
+                printf "%bCLI ERROR%b\n" "${YELLOW}" "${NC}"
+                if [ "${VERBOSE}" = "1" ] || [ "${DEBUG}" = "1" ]; then
+                    printf "  Note: Topdesk CLI found but test commands failed\n"
+                fi
             fi
-        else
-            printf "%bUNCONFIGURED%b\n" "${YELLOW}" "${NC}"
-        fi
-
-        # Test Topdesk
-        printf "Testing Topdesk connection... "
-        if [ -n "${TOPDESK_URL}" ]; then
+        elif [ -n "${TOPDESK_URL}" ]; then
+            # Fallback to basic HTTP check if no CLI
             local td_url="${TOPDESK_URL}"
-            # Ensure proper API endpoint
             if ! echo "${td_url}" | grep -q "/api"; then
                 td_url="${td_url}/tas/api"
             fi
 
-            if [ "${DEBUG}" = "1" ]; then
-                printf "\n  Testing URL: %s\n  " "${td_url}"
-            fi
-
-            # Use more robust curl options (same as Zabbix)
             local http_code
+            http_code=$(curl -s -o /dev/null -w "%{http_code}" -k -L --connect-timeout 5 -m 10 "${td_url}" 2>/dev/null)
 
             if [ "${DEBUG}" = "1" ]; then
-                # In debug mode, show verbose curl output
-                printf "\n  Running: curl -I -s -k -L --connect-timeout 5 -m 10 '%s'\n" "${td_url}"
-                # Get headers to see what's happening
-                local headers
-                headers=$(curl -I -s -k -L --connect-timeout 5 -m 10 "${td_url}" 2>&1)
-                http_code=$(curl -s -o /dev/null -w "%{http_code}" -k -L --connect-timeout 5 -m 10 "${td_url}" 2>&1)
-                printf "  HTTP Code: %s\n" "${http_code}"
-                if [ "${http_code}" = "000" ]; then
-                    printf "  Connection failed. Trying verbose mode:\n"
-                    curl -v -s -k -L --connect-timeout 5 -m 10 "${td_url}" 2>&1 | head -20 || true
-                fi
-                printf "  "
-            else
-                # Normal mode - just get HTTP code
-                http_code=$(curl -s -o /dev/null -w "%{http_code}" -k -L --connect-timeout 5 -m 10 "${td_url}" 2>/dev/null)
+                printf "\n  No topdesk CLI, using curl test\n"
+                printf "  URL: %s\n" "${td_url}"
+                printf "  HTTP Code: %s\n  " "${http_code}"
             fi
 
             if echo "${http_code}" | grep -q "200\|401\|403"; then
-                printf "%bOK%b\n" "${GREEN}" "${NC}"
+                printf "%bREACHABLE%b (HTTP %s)\n" "${GREEN}" "${NC}" "${http_code}"
             else
                 printf "%bUNREACHABLE%b (HTTP %s)\n" "${YELLOW}" "${NC}" "${http_code}"
             fi
