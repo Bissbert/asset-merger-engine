@@ -208,7 +208,8 @@ fetch_topdesk_assets() {
     log_info "Fetching assets from Topdesk${filter:+ (filter: $filter)}"
 
     # Build topdesk command
-    local cmd="topdesk assets list --format json"
+    # The topdesk-cli now handles its own configuration
+    local cmd="topdesk asset list --output json"
     [ -n "$filter" ] && cmd="$cmd --query '$filter'"
 
     # Execute with retry logic
@@ -407,12 +408,20 @@ validate_tools() {
     if command -v topdesk >/dev/null 2>&1; then
         td_cmd="topdesk"
         export TOPDESK_CLI_COMMAND="topdesk"
-    fi
 
-    if [ -z "$td_cmd" ]; then
+        # Validate topdesk configuration
+        if topdesk config validate >/dev/null 2>&1; then
+            log_debug "Topdesk configuration validated successfully"
+        else
+            log_warning "Topdesk configuration not initialized. Run 'topdesk config init' to configure"
+            missing_tools="${missing_tools}topdesk-config "
+        fi
+    else
         missing_tools="${missing_tools}topdesk "
         log_warning "topdesk command not found in PATH"
-    else
+    fi
+
+    if [ -n "$td_cmd" ]; then
         log_debug "Found topdesk command: $td_cmd"
     fi
 
