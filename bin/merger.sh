@@ -1031,13 +1031,57 @@ cmd_validate() {
         # Load config
         . "${CONFIG_FILE}"
 
+        # Show configuration being used (with debug mode)
+        if [ "${DEBUG}" = "1" ] || [ "${VERBOSE}" = "1" ]; then
+            printf "\n%bConfiguration Details:%b\n" "${BOLD}" "${NC}"
+            printf "  Config file: %s\n" "${CONFIG_FILE}"
+
+            # Zabbix config
+            printf "  Zabbix:\n"
+            printf "    URL: %s\n" "${ZABBIX_URL:-<not set>}"
+            if [ -n "${ZABBIX_API_TOKEN:-}" ]; then
+                printf "    Auth: API Token (${GREEN}configured${NC})\n"
+            elif [ -n "${ZABBIX_USER:-}" ]; then
+                printf "    Auth: User/Password (user: %s)\n" "${ZABBIX_USER}"
+            else
+                printf "    Auth: ${RED}Not configured${NC}\n"
+            fi
+
+            # Topdesk config
+            printf "  Topdesk:\n"
+            printf "    URL: %s\n" "${TOPDESK_URL:-<not set>}"
+            if [ -n "${TOPDESK_API_TOKEN:-}" ]; then
+                printf "    Auth: API Token (${GREEN}configured${NC})\n"
+            elif [ -n "${TOPDESK_USER:-}" ]; then
+                printf "    Auth: User/Password (user: %s)\n" "${TOPDESK_USER}"
+            else
+                printf "    Auth: ${RED}Not configured${NC}\n"
+            fi
+            printf "\n"
+        fi
+
         # Test Zabbix
         printf "Testing Zabbix connection... "
         if [ -n "${ZABBIX_URL}" ]; then
-            if curl -s -o /dev/null -w "%{http_code}" "${ZABBIX_URL}/api_jsonrpc.php" | grep -q "200\|401\|403"; then
+            local zbx_url="${ZABBIX_URL}"
+            # Ensure proper API endpoint
+            if ! echo "${zbx_url}" | grep -q "/api_jsonrpc.php"; then
+                zbx_url="${zbx_url}/api_jsonrpc.php"
+            fi
+
+            if [ "${DEBUG}" = "1" ]; then
+                printf "\n  Testing URL: %s\n  " "${zbx_url}"
+            fi
+
+            local http_code=$(curl -s -o /dev/null -w "%{http_code}" "${zbx_url}" 2>/dev/null)
+            if [ "${DEBUG}" = "1" ]; then
+                printf "HTTP Code: %s... " "${http_code}"
+            fi
+
+            if echo "${http_code}" | grep -q "200\|401\|403"; then
                 printf "%bOK%b\n" "${GREEN}" "${NC}"
             else
-                printf "%bUNREACHABLE%b\n" "${YELLOW}" "${NC}"
+                printf "%bUNREACHABLE%b (HTTP %s)\n" "${YELLOW}" "${NC}" "${http_code}"
             fi
         else
             printf "%bUNCONFIGURED%b\n" "${YELLOW}" "${NC}"
@@ -1046,10 +1090,25 @@ cmd_validate() {
         # Test Topdesk
         printf "Testing Topdesk connection... "
         if [ -n "${TOPDESK_URL}" ]; then
-            if curl -s -o /dev/null -w "%{http_code}" "${TOPDESK_URL}/api" | grep -q "200\|401\|403"; then
+            local td_url="${TOPDESK_URL}"
+            # Ensure proper API endpoint
+            if ! echo "${td_url}" | grep -q "/api"; then
+                td_url="${td_url}/tas/api"
+            fi
+
+            if [ "${DEBUG}" = "1" ]; then
+                printf "\n  Testing URL: %s\n  " "${td_url}"
+            fi
+
+            local http_code=$(curl -s -o /dev/null -w "%{http_code}" "${td_url}" 2>/dev/null)
+            if [ "${DEBUG}" = "1" ]; then
+                printf "HTTP Code: %s... " "${http_code}"
+            fi
+
+            if echo "${http_code}" | grep -q "200\|401\|403"; then
                 printf "%bOK%b\n" "${GREEN}" "${NC}"
             else
-                printf "%bUNREACHABLE%b\n" "${YELLOW}" "${NC}"
+                printf "%bUNREACHABLE%b (HTTP %s)\n" "${YELLOW}" "${NC}" "${http_code}"
             fi
         else
             printf "%bUNCONFIGURED%b\n" "${YELLOW}" "${NC}"
