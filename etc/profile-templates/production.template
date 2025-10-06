@@ -1,0 +1,47 @@
+# Production Profile Template
+# Conservative settings for production environments
+# Prioritizes safety and stability over speed
+
+# Merge Settings
+MERGE_STRATEGY="update"           # Only update existing assets, never create/delete
+CONFLICT_RESOLUTION="topdesk"     # TopDesk is source of truth in production
+BATCH_SIZE="25"                   # Small batches to minimize impact
+BATCH_DELAY="2"                   # 2 second delay between batches
+
+# Safety Features
+DRY_RUN="false"                   # Apply changes (set true for testing)
+STRICT_VALIDATION="true"          # Enforce strict data validation
+VALIDATE_IP="true"                # Validate IP format
+VALIDATE_HOSTNAME="true"          # Validate hostname format
+VALIDATE_EMAIL="true"             # Validate email format
+REQUIRE_OWNER="true"              # Require owner field
+ERROR_THRESHOLD="5"               # Stop after 5 errors
+CONTINUE_ON_ERROR="false"         # Stop on first error
+
+# Performance (Conservative)
+MAX_WORKERS="2"                   # Limited parallel processing
+PARALLEL_FETCH="false"            # Sequential fetching for consistency
+CHUNK_SIZE="10"                   # Small chunks
+ENABLE_CACHING="true"             # Use caching to reduce API load
+CACHE_TTL="300"                   # 5 minute cache
+
+# Retry Configuration
+MAX_RETRIES="5"                   # More retries for reliability
+RETRY_DELAY="10"                  # 10 second initial retry delay
+RETRY_BACKOFF="2"                 # Exponential backoff
+
+# Notifications
+NOTIFY_ON_SUCCESS="true"          # Always notify on success
+NOTIFY_ON_ERROR="true"            # Always notify on errors
+NOTIFICATION_METHOD="email"       # Email notifications
+
+# Logging
+LOG_LEVEL="INFO"                  # Detailed logging
+LOG_ROTATE="true"                 # Enable log rotation
+LOG_MAX_SIZE="10485760"           # 10MB max log size
+LOG_MAX_FILES="30"                # Keep 30 log files
+
+# Reports
+GENERATE_REPORTS="true"           # Always generate reports
+REPORT_FORMAT="html"              # HTML format for easy reading
+COMPRESS_OUTPUT="true"            # Compress output files

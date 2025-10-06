@@ -108,6 +108,7 @@ install: check
 	$(INSTALL) -m 755 lib/cli_wrapper.sh $(LIBDIR)/
 	$(INSTALL) -m 755 lib/zbx_cli_wrapper.sh $(LIBDIR)/
 	$(INSTALL) -m 755 lib/topdesk_cli_wrapper.sh $(LIBDIR)/
+	$(INSTALL) -m 644 lib/profile_manager.sh $(LIBDIR)/
 
 	# Install Python modules
 	$(INSTALL) -m 644 lib/validator.py $(LIBDIR)/
@@ -122,6 +123,12 @@ install: check
 	$(INSTALL) -m 755 bin/tui_launcher.sh $(LIBDIR)/tui_launcher.sh
 	@if [ -f bin/tui_whiptail.sh ]; then $(INSTALL) -m 755 bin/tui_whiptail.sh $(LIBDIR)/; fi
 	@if [ -f bin/tui_pure_shell.sh ]; then $(INSTALL) -m 755 bin/tui_pure_shell.sh $(LIBDIR)/; fi
+	$(INSTALL) -m 755 bin/profile_wizard.sh $(LIBDIR)/profile_wizard.sh
+
+	# Install profile templates
+	$(MKDIR) $(ETCDIR)/profile-templates
+	$(INSTALL) -m 644 etc/profile-templates/*.template $(ETCDIR)/profile-templates/
+	$(MKDIR) $(ETCDIR)/profiles
 
 	# Install configuration
 	@if [ ! -f $(ETCDIR)/merger.conf ]; then \
@@ -207,6 +214,7 @@ user-install: check
 	$(INSTALL) -m 755 lib/cli_wrapper.sh $$HOME/.local/lib/asset-merger-engine/
 	$(INSTALL) -m 755 lib/zbx_cli_wrapper.sh $$HOME/.local/lib/asset-merger-engine/
 	$(INSTALL) -m 755 lib/topdesk_cli_wrapper.sh $$HOME/.local/lib/asset-merger-engine/
+	$(INSTALL) -m 644 lib/profile_manager.sh $$HOME/.local/lib/asset-merger-engine/
 
 	# Install Python modules
 	$(INSTALL) -m 644 lib/validator.py $$HOME/.local/lib/asset-merger-engine/
@@ -221,6 +229,12 @@ user-install: check
 	$(INSTALL) -m 755 bin/tui_launcher.sh $$HOME/.local/lib/asset-merger-engine/tui_launcher.sh
 	@if [ -f bin/tui_whiptail.sh ]; then $(INSTALL) -m 755 bin/tui_whiptail.sh $$HOME/.local/lib/asset-merger-engine/; fi
 	@if [ -f bin/tui_pure_shell.sh ]; then $(INSTALL) -m 755 bin/tui_pure_shell.sh $$HOME/.local/lib/asset-merger-engine/; fi
+	$(INSTALL) -m 755 bin/profile_wizard.sh $$HOME/.local/lib/asset-merger-engine/profile_wizard.sh
+
+	# Install profile templates
+	@mkdir -p $$HOME/.config/asset-merger-engine/profile-templates
+	$(INSTALL) -m 644 etc/profile-templates/*.template $$HOME/.config/asset-merger-engine/profile-templates/
+	@mkdir -p $$HOME/.config/asset-merger-engine/profiles
 
 	# Install configuration
 	@if [ ! -f $$HOME/.config/asset-merger-engine/merger.conf ]; then \

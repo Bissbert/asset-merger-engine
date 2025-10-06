@@ -1,0 +1,53 @@
+# Development Profile Template
+# Aggressive settings for development environments
+# Prioritizes speed and convenience over safety
+
+# Merge Settings
+MERGE_STRATEGY="sync"             # Full synchronization
+CONFLICT_RESOLUTION="newest"      # Use most recent data
+BATCH_SIZE="500"                  # Large batches for speed
+BATCH_DELAY="0"                   # No delay between batches
+
+# Safety Features
+DRY_RUN="true"                    # Default to dry-run in dev
+STRICT_VALIDATION="false"         # Relaxed validation
+VALIDATE_IP="false"               # Skip IP validation
+VALIDATE_HOSTNAME="false"         # Skip hostname validation
+VALIDATE_EMAIL="false"            # Skip email validation
+REQUIRE_OWNER="false"             # Owner field optional
+ERROR_THRESHOLD="100"             # High error tolerance
+CONTINUE_ON_ERROR="true"          # Always continue on errors
+
+# Performance (Maximum)
+MAX_WORKERS="8"                   # High parallelization
+PARALLEL_FETCH="true"             # Enable parallel fetching
+CHUNK_SIZE="100"                  # Large chunks
+ENABLE_CACHING="true"             # Use caching
+CACHE_TTL="3600"                  # 1 hour cache
+
+# Retry Configuration
+MAX_RETRIES="1"                   # Minimal retries
+RETRY_DELAY="2"                   # 2 second retry delay
+RETRY_BACKOFF="1"                 # No backoff
+
+# Notifications
+NOTIFY_ON_SUCCESS="false"         # No notifications in dev
+NOTIFY_ON_ERROR="false"           # No error notifications
+NOTIFICATION_METHOD="none"        # Disable notifications
+
+# Logging
+LOG_LEVEL="DEBUG"                 # Verbose logging for debugging
+LOG_ROTATE="false"                # No log rotation in dev
+LOG_MAX_SIZE="104857600"          # 100MB max log size
+LOG_MAX_FILES="5"                 # Keep 5 log files
+
+# Reports
+GENERATE_REPORTS="true"           # Generate reports for analysis
+REPORT_FORMAT="json"              # JSON for parsing
+COMPRESS_OUTPUT="false"           # Don't compress in dev
+
+# Debug Options
+DEBUG_MODE="true"                 # Enable debug mode
+DEBUG_OUTPUT_RAW="true"           # Output raw API responses
+DEBUG_KEEP_TEMP="true"            # Keep temporary files
+DEBUG_TRACE_CALLS="false"         # Don't trace all function calls
