@@ -26,9 +26,10 @@ detect_zbx_command() {
 
 # Zabbix authentication
 authenticate_zabbix() {
-    local server="${ZABBIX_SERVER:-}"
+    local server="${ZABBIX_URL:-${ZABBIX_SERVER:-}}"
     local username="${ZABBIX_USER:-}"
-    local password="${ZABBIX_PASS:-}"
+    local password="${ZABBIX_PASSWORD:-${ZABBIX_PASS:-}}"
+    local api_token="${ZABBIX_API_TOKEN:-}"
     local config_file="${ZABBIX_CONFIG:-${AUTH_DIR}/zbx-cli.conf}"
     local session_file="${AUTH_DIR}/.zbx_session"
 
@@ -41,15 +42,28 @@ authenticate_zabbix() {
     fi
     export ZBX_CLI_COMMAND="$zbx_cmd"
 
-    # Check for required parameters
-    if [ -z "$server" ] || [ -z "$username" ] || [ -z "$password" ]; then
+    # Check for required parameters - need server and either user/pass or API token
+    if [ -z "$server" ]; then
         # Try to read from config file
         if [ -f "$config_file" ]; then
             log_debug "Using Zabbix config from $config_file"
             export ZBX_CLI_CONFIG="$config_file"
             return 0
         else
-            log_error "Zabbix authentication requires ZABBIX_SERVER, ZABBIX_USER, and ZABBIX_PASS"
+            log_error "Zabbix authentication requires ZABBIX_URL/ZABBIX_SERVER"
+            return 1
+        fi
+    fi
+
+    # Check for authentication method
+    if [ -z "$username" ] && [ -z "$password" ] && [ -z "$api_token" ]; then
+        # Try to read from config file
+        if [ -f "$config_file" ]; then
+            log_debug "Using Zabbix config from $config_file"
+            export ZBX_CLI_CONFIG="$config_file"
+            return 0
+        else
+            log_error "Zabbix authentication requires either user/password or API token"
             return 1
         fi
     fi
@@ -68,7 +82,21 @@ authenticate_zabbix() {
 
     # Create config file if it doesn't exist
     if [ ! -f "$config_file" ]; then
-        cat > "$config_file" <<EOF
+        if [ -n "$api_token" ]; then
+            # Use API token authentication
+            cat > "$config_file" <<EOF
+[zabbix]
+server = $server
+api_token = $api_token
+verify_ssl = true
+timeout = 30
+
+[output]
+format = json
+EOF
+        else
+            # Use username/password authentication
+            cat > "$config_file" <<EOF
 [zabbix]
 server = $server
 username = $username
@@ -79,6 +107,7 @@ timeout = 30
 [output]
 format = json
 EOF
+        fi
         chmod 600 "$config_file"
         log_debug "Created Zabbix config file: $config_file"
     fi
@@ -109,8 +138,8 @@ detect_topdesk_command() {
 authenticate_topdesk() {
     local url="${TOPDESK_URL:-}"
     local username="${TOPDESK_USER:-}"
-    local password="${TOPDESK_PASS:-}"
-    local api_key="${TOPDESK_API_KEY:-}"
+    local password="${TOPDESK_PASSWORD:-${TOPDESK_PASS:-}}"
+    local api_token="${TOPDESK_API_TOKEN:-${TOPDESK_API_KEY:-}}"
     local config_file="${TOPDESK_CONFIG:-${AUTH_DIR}/topdesk-cli.conf}"
     local session_file="${AUTH_DIR}/.topdesk_session"
 
@@ -150,12 +179,12 @@ authenticate_topdesk() {
 
     # Create config file if it doesn't exist
     if [ ! -f "$config_file" ]; then
-        if [ -n "$api_key" ]; then
-            # API key authentication
+        if [ -n "$api_token" ]; then
+            # API token authentication
             cat > "$config_file" <<EOF
 [topdesk]
 url = $url
-api_key = $api_key
+api_key = $api_token
 verify_ssl = true
 timeout = 30
 
@@ -176,7 +205,7 @@ timeout = 30
 format = json
 EOF
         else
-            log_error "Topdesk authentication requires either API_KEY or USER/PASS"
+            log_error "Topdesk authentication requires either API token or username/password"
             return 1
         fi
         chmod 600 "$config_file"

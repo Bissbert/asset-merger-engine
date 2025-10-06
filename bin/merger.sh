@@ -367,15 +367,21 @@ validate_config() {
     # Validate required settings
     local errors=0
 
-    # Check Zabbix configuration
-    if [ -z "${ZABBIX_URL:-}" ] || [ -z "${ZABBIX_USER:-}" ]; then
-        log_error "Missing Zabbix configuration"
+    # Check Zabbix configuration - need URL and either user/pass or API token
+    if [ -z "${ZABBIX_URL:-}" ]; then
+        log_error "Missing Zabbix URL"
+        errors=$((errors + 1))
+    elif [ -z "${ZABBIX_USER:-}" ] && [ -z "${ZABBIX_API_TOKEN:-}" ]; then
+        log_error "Missing Zabbix authentication (need either user/password or API token)"
         errors=$((errors + 1))
     fi
 
-    # Check Topdesk configuration
-    if [ -z "${TOPDESK_URL:-}" ] || [ -z "${TOPDESK_USER:-}" ]; then
-        log_error "Missing Topdesk configuration"
+    # Check Topdesk configuration - need URL and either user/pass or API token
+    if [ -z "${TOPDESK_URL:-}" ]; then
+        log_error "Missing Topdesk URL"
+        errors=$((errors + 1))
+    elif [ -z "${TOPDESK_USER:-}" ] && [ -z "${TOPDESK_API_TOKEN:-}" ]; then
+        log_error "Missing Topdesk authentication (need either user/password or API token)"
         errors=$((errors + 1))
     fi
 

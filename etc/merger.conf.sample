@@ -6,12 +6,14 @@
 # Zabbix API endpoint URL
 ZABBIX_URL="https://zabbix.example.com/api_jsonrpc.php"
 
-# Zabbix authentication credentials
+# Zabbix authentication - choose one method:
+# Method 1: Username and password
 ZABBIX_USER="admin"
 ZABBIX_PASSWORD="changeme"
 
-# Optional: Use API token instead of user/password
-# ZABBIX_API_TOKEN=""
+# Method 2: API token (comment out user/password if using token)
+# ZABBIX_API_TOKEN="your-api-token-here"
+# Note: When using API token, comment out ZABBIX_USER and ZABBIX_PASSWORD above
 
 # Zabbix query parameters
 ZABBIX_GROUP_FILTER=""  # Filter by host group
@@ -23,12 +25,14 @@ ZABBIX_TIMEOUT="30"     # API timeout in seconds
 # Topdesk API endpoint URL
 TOPDESK_URL="https://topdesk.example.com/tas/api"
 
-# Topdesk authentication credentials
+# Topdesk authentication - choose one method:
+# Method 1: Username and password
 TOPDESK_USER="apiuser"
 TOPDESK_PASSWORD="changeme"
 
-# Optional: Use API token instead of user/password
-# TOPDESK_API_TOKEN=""
+# Method 2: API token (comment out user/password if using token)
+# TOPDESK_API_TOKEN="your-api-token-here"
+# Note: When using API token, comment out TOPDESK_USER and TOPDESK_PASSWORD above
 
 # Topdesk parameters
 TOPDESK_TIMEOUT="30"    # API timeout in seconds
