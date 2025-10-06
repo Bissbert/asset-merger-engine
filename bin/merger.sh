@@ -1203,33 +1203,26 @@ cmd_validate() {
             # Create temporary config file for topdesk (shell format with --config parameter)
             local temp_td_config="${TMP_DIR:-/tmp}/topdesk_test_$$.sh"
 
-            # Create the temp config in shell format that topdesk expects
+            # Create the temp config in shell format that topdesk expects (TDX_ variables)
             {
                 echo "#!/bin/sh"
                 echo "# Temporary topdesk config for asset-merger-engine"
-                echo "export TOPDESK_URL='${TOPDESK_URL:-}'"
+                echo "export TDX_BASE_URL='${TOPDESK_URL:-}'"
                 if [ -n "${TOPDESK_API_TOKEN:-}" ]; then
-                    echo "export TOPDESK_API_TOKEN='${TOPDESK_API_TOKEN}'"
+                    echo "export TDX_AUTH_TOKEN='${TOPDESK_API_TOKEN}'"
                 else
-                    echo "export TOPDESK_USER='${TOPDESK_USER:-}'"
-                    echo "export TOPDESK_PASSWORD='${TOPDESK_PASSWORD:-}'"
+                    echo "export TDX_USER='${TOPDESK_USER:-}'"
+                    echo "export TDX_PASS='${TOPDESK_PASSWORD:-}'"
                 fi
-                # Map VERIFY_SSL to TOPDESK_VERIFY_SSL
+                # Map VERIFY_SSL to TDX_VERIFY_TLS (topdesk expects 0 or 1)
                 if [ "${VERIFY_SSL:-true}" = "false" ]; then
-                    echo "export TOPDESK_VERIFY_SSL='false'"
+                    echo "export TDX_VERIFY_TLS=0"
                 else
-                    echo "export TOPDESK_VERIFY_SSL='true'"
+                    echo "export TDX_VERIFY_TLS=1"
                 fi
-                echo "export TOPDESK_TIMEOUT='${TOPDESK_TIMEOUT:-${CONNECT_TIMEOUT:-30}}'"
-                echo "export TOPDESK_FORMAT='json'"
+                echo "export TDX_TIMEOUT='${TOPDESK_TIMEOUT:-${CONNECT_TIMEOUT:-30}}'"
             } > "${temp_td_config}"
             chmod +x "${temp_td_config}"
-
-            # Also export as environment variables as fallback
-            export TOPDESK_URL="${TOPDESK_URL:-}"
-            export TOPDESK_USER="${TOPDESK_USER:-}"
-            export TOPDESK_PASSWORD="${TOPDESK_PASSWORD:-}"
-            export TOPDESK_API_TOKEN="${TOPDESK_API_TOKEN:-}"
 
             if [ "${DEBUG}" = "1" ]; then
                 printf "\n  Testing with: topdesk test/version\n"
@@ -1283,7 +1276,6 @@ cmd_validate() {
 
             # Clean up temp config
             rm -f "${temp_td_config}"
-            unset TOPDESK_CONFIG
         elif [ -n "${TOPDESK_URL}" ]; then
             # Fallback to basic HTTP check if no CLI
             local td_url="${TOPDESK_URL}"
@@ -1372,32 +1364,25 @@ cmd_validate() {
                 {
                     echo "#!/bin/sh"
                     echo "# Temporary topdesk config for asset-merger-engine diagnostics"
-                    echo "export TOPDESK_URL='${TOPDESK_URL:-}'"
+                    echo "export TDX_BASE_URL='${TOPDESK_URL:-}'"
                     if [ -n "${TOPDESK_API_TOKEN:-}" ]; then
-                        echo "export TOPDESK_API_TOKEN='${TOPDESK_API_TOKEN}'"
+                        echo "export TDX_AUTH_TOKEN='${TOPDESK_API_TOKEN}'"
                     else
-                        echo "export TOPDESK_USER='${TOPDESK_USER:-}'"
-                        echo "export TOPDESK_PASSWORD='${TOPDESK_PASSWORD:-}'"
+                        echo "export TDX_USER='${TOPDESK_USER:-}'"
+                        echo "export TDX_PASS='${TOPDESK_PASSWORD:-}'"
                     fi
-                    # Map VERIFY_SSL to TOPDESK_VERIFY_SSL
+                    # Map VERIFY_SSL to TDX_VERIFY_TLS (topdesk expects 0 or 1)
                     if [ "${VERIFY_SSL:-true}" = "false" ]; then
-                        echo "export TOPDESK_VERIFY_SSL='false'"
+                        echo "export TDX_VERIFY_TLS=0"
                     else
-                        echo "export TOPDESK_VERIFY_SSL='true'"
+                        echo "export TDX_VERIFY_TLS=1"
                     fi
-                    echo "export TOPDESK_TIMEOUT='${TOPDESK_TIMEOUT:-${CONNECT_TIMEOUT:-30}}'"
-                    echo "export TOPDESK_FORMAT='json'"
+                    echo "export TDX_TIMEOUT='${TOPDESK_TIMEOUT:-${CONNECT_TIMEOUT:-30}}'"
                 } > "${temp_td_config}"
                 chmod +x "${temp_td_config}"
 
                 printf "Using temporary config: %s\n" "${temp_td_config}"
                 printf "%s\n" "----------------------------------------"
-
-                # Also export directly for compatibility
-                export TOPDESK_URL="${TOPDESK_URL:-}"
-                export TOPDESK_USER="${TOPDESK_USER:-}"
-                export TOPDESK_PASSWORD="${TOPDESK_PASSWORD:-}"
-                export TOPDESK_API_TOKEN="${TOPDESK_API_TOKEN:-}"
 
                 # Try various diagnostic commands
                 # First check which commands are available (using --config)
@@ -1459,14 +1444,23 @@ cmd_validate() {
                         if [ -f "${temp_td_config}" ]; then
                             # Display the shell file content with masked password
                             while IFS= read -r line; do
-                                if echo "$line" | grep -q "^export TOPDESK_PASSWORD="; then
+                                if echo "$line" | grep -q "^export TDX_PASS="; then
                                     # Mask the password
-                                    local pass_value=$(echo "$line" | sed "s/^export TOPDESK_PASSWORD=['\"]\(.*\)['\"]$/\1/")
-                                    if [ -n "$pass_value" ] && [ "$pass_value" != "export TOPDESK_PASSWORD=" ]; then
+                                    local pass_value=$(echo "$line" | sed "s/^export TDX_PASS=['\"]\(.*\)['\"]$/\1/")
+                                    if [ -n "$pass_value" ] && [ "$pass_value" != "export TDX_PASS=" ]; then
                                         local masked=$(echo "$pass_value" | sed 's/^\(...\).*/\1***/')
-                                        printf "export TOPDESK_PASSWORD='%s'\n" "$masked"
+                                        printf "export TDX_PASS='%s'\n" "$masked"
                                     else
-                                        printf "export TOPDESK_PASSWORD=''\n"
+                                        printf "export TDX_PASS=''\n"
+                                    fi
+                                elif echo "$line" | grep -q "^export TDX_AUTH_TOKEN="; then
+                                    # Mask the API token
+                                    local token_value=$(echo "$line" | sed "s/^export TDX_AUTH_TOKEN=['\"]\(.*\)['\"]$/\1/")
+                                    if [ -n "$token_value" ] && [ "$token_value" != "export TDX_AUTH_TOKEN=" ]; then
+                                        local masked=$(echo "$token_value" | sed 's/^\(...\).*/\1***/')
+                                        printf "export TDX_AUTH_TOKEN='%s'\n" "$masked"
+                                    else
+                                        printf "export TDX_AUTH_TOKEN=''\n"
                                     fi
                                 elif echo "$line" | grep -q "^#!/bin/sh"; then
                                     # Skip shebang in display
