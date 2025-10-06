@@ -1200,36 +1200,32 @@ cmd_validate() {
         # Test Topdesk API
         printf "Testing Topdesk API connection... "
         if [ -n "${TOPDESK_URL}" ] && command -v topdesk >/dev/null 2>&1; then
-            # Create temporary config file for topdesk to ensure our config takes precedence
-            local temp_td_config="${TMP_DIR:-/tmp}/topdesk_test_$$.sh"
+            # Create temporary config file for topdesk (INI format for --config parameter)
+            local temp_td_config="${TMP_DIR:-/tmp}/topdesk_test_$$.ini"
 
-            # Create the temp config based on our settings (assuming shell format like zbx)
+            # Create the temp config in INI format that topdesk expects
             {
-                echo "#!/bin/sh"
-                echo "# Temporary topdesk config for testing"
-                echo "export TOPDESK_URL='${TOPDESK_URL:-}'"
+                echo "[topdesk]"
+                echo "url = ${TOPDESK_URL:-}"
                 if [ -n "${TOPDESK_API_TOKEN:-}" ]; then
-                    echo "export TOPDESK_API_TOKEN='${TOPDESK_API_TOKEN}'"
+                    echo "api_key = ${TOPDESK_API_TOKEN}"
                 else
-                    echo "export TOPDESK_USER='${TOPDESK_USER:-}'"
-                    echo "export TOPDESK_PASSWORD='${TOPDESK_PASSWORD:-}'"
+                    echo "username = ${TOPDESK_USER:-}"
+                    echo "password = ${TOPDESK_PASSWORD:-}"
                 fi
-                # Map VERIFY_SSL to TOPDESK_VERIFY_SSL (use same format as engine config)
+                # Map VERIFY_SSL to verify_ssl setting
                 if [ "${VERIFY_SSL:-true}" = "false" ]; then
-                    echo "export TOPDESK_VERIFY_SSL=false"
+                    echo "verify_ssl = false"
                 else
-                    echo "export TOPDESK_VERIFY_SSL=true"
+                    echo "verify_ssl = true"
                 fi
-                # Use configured timeout or default to 30
-                echo "export TOPDESK_TIMEOUT=${TOPDESK_TIMEOUT:-${CONNECT_TIMEOUT:-30}}"
+                echo "timeout = ${TOPDESK_TIMEOUT:-${CONNECT_TIMEOUT:-30}}"
+                echo ""
+                echo "[output]"
+                echo "format = json"
             } > "${temp_td_config}"
-            chmod +x "${temp_td_config}"
 
-            # Check if topdesk supports a config environment variable
-            # If not, we'll just export the variables directly
-            export TOPDESK_CONFIG="${temp_td_config}"
-
-            # Also export directly in case topdesk doesn't use TOPDESK_CONFIG
+            # Also export as environment variables as fallback
             export TOPDESK_URL="${TOPDESK_URL:-}"
             export TOPDESK_USER="${TOPDESK_USER:-}"
             export TOPDESK_PASSWORD="${TOPDESK_PASSWORD:-}"
@@ -1246,16 +1242,17 @@ cmd_validate() {
                 printf "  "
             fi
 
-            # Try topdesk test commands (source config for each test)
+            # Try topdesk test commands (use --config parameter)
             local test_result
             if [ "${DEBUG}" = "1" ]; then
                 # Try various test commands with our config
-                printf "Trying topdesk commands with our config...\n"
-                if (. "${temp_td_config}" && topdesk test >/dev/null 2>&1); then
+                printf "Trying topdesk commands with --config...\n"
+                printf "  Config file: %s\n  " "${temp_td_config}"
+                if topdesk --config "${temp_td_config}" test >/dev/null 2>&1; then
                     test_result=0
-                elif (. "${temp_td_config}" && topdesk version >/dev/null 2>&1); then
+                elif topdesk --config "${temp_td_config}" version >/dev/null 2>&1; then
                     test_result=0
-                elif (. "${temp_td_config}" && topdesk --version >/dev/null 2>&1); then
+                elif topdesk --config "${temp_td_config}" --version >/dev/null 2>&1; then
                     test_result=0
                 else
                     test_result=1
@@ -1263,12 +1260,12 @@ cmd_validate() {
                 fi
                 printf "  "
             else
-                # Silent mode - source config for each test
-                if (. "${temp_td_config}" && topdesk test >/dev/null 2>&1); then
+                # Silent mode - use --config parameter
+                if topdesk --config "${temp_td_config}" test >/dev/null 2>&1; then
                     test_result=0
-                elif (. "${temp_td_config}" && topdesk version >/dev/null 2>&1); then
+                elif topdesk --config "${temp_td_config}" version >/dev/null 2>&1; then
                     test_result=0
-                elif (. "${temp_td_config}" && topdesk --version >/dev/null 2>&1); then
+                elif topdesk --config "${temp_td_config}" --version >/dev/null 2>&1; then
                     test_result=0
                 else
                     test_result=1
@@ -1370,31 +1367,31 @@ cmd_validate() {
             if command -v topdesk >/dev/null 2>&1; then
                 printf "\n%bTopdesk CLI Diagnostics:%b\n" "${CYAN}" "${NC}"
 
-                # Create temporary config file for topdesk diagnostics (similar to zbx approach)
-                local temp_td_config="${TMP_DIR:-/tmp}/topdesk_doctor_$$.sh"
+                # Create temporary config file for topdesk diagnostics (INI format)
+                local temp_td_config="${TMP_DIR:-/tmp}/topdesk_doctor_$$.ini"
                 {
-                    echo "#!/bin/sh"
-                    echo "# Temporary topdesk config for diagnostics"
-                    echo "export TOPDESK_URL='${TOPDESK_URL:-}'"
+                    echo "[topdesk]"
+                    echo "url = ${TOPDESK_URL:-}"
                     if [ -n "${TOPDESK_API_TOKEN:-}" ]; then
-                        echo "export TOPDESK_API_TOKEN='${TOPDESK_API_TOKEN}'"
+                        echo "api_key = ${TOPDESK_API_TOKEN}"
                     else
-                        echo "export TOPDESK_USER='${TOPDESK_USER:-}'"
-                        echo "export TOPDESK_PASSWORD='${TOPDESK_PASSWORD:-}'"
+                        echo "username = ${TOPDESK_USER:-}"
+                        echo "password = ${TOPDESK_PASSWORD:-}"
                     fi
-                    # Map VERIFY_SSL to TOPDESK_VERIFY_SSL (use same format as engine config)
+                    # Map VERIFY_SSL to verify_ssl setting
                     if [ "${VERIFY_SSL:-true}" = "false" ]; then
-                        echo "export TOPDESK_VERIFY_SSL=false"
+                        echo "verify_ssl = false"
                     else
-                        echo "export TOPDESK_VERIFY_SSL=true"
+                        echo "verify_ssl = true"
                     fi
-                    # Use configured timeout or default to 30
-                    echo "export TOPDESK_TIMEOUT=${TOPDESK_TIMEOUT:-${CONNECT_TIMEOUT:-30}}"
+                    echo "timeout = ${TOPDESK_TIMEOUT:-${CONNECT_TIMEOUT:-30}}"
+                    echo ""
+                    echo "[output]"
+                    echo "format = json"
                 } > "${temp_td_config}"
-                chmod +x "${temp_td_config}"
 
-                # Set config if supported, otherwise just export variables
-                export TOPDESK_CONFIG="${temp_td_config}"
+                printf "Using temporary config: %s\n" "${temp_td_config}"
+                printf "%s\n" "----------------------------------------"
 
                 # Also export directly for compatibility
                 export TOPDESK_URL="${TOPDESK_URL:-}"
@@ -1403,79 +1400,79 @@ cmd_validate() {
                 export TOPDESK_API_TOKEN="${TOPDESK_API_TOKEN:-}"
 
                 # Try various diagnostic commands
-                # First check which commands are available (with our config)
+                # First check which commands are available (using --config)
                 local topdesk_has_doctor=0
                 local topdesk_has_config=0
                 local topdesk_has_test=0
 
-                if (. "${temp_td_config}" && topdesk doctor --help >/dev/null 2>&1); then
+                if topdesk --config "${temp_td_config}" doctor --help >/dev/null 2>&1; then
                     topdesk_has_doctor=1
                 fi
-                if (. "${temp_td_config}" && topdesk config --help >/dev/null 2>&1); then
+                if topdesk --config "${temp_td_config}" config --help >/dev/null 2>&1; then
                     topdesk_has_config=1
                 fi
-                if (. "${temp_td_config}" && topdesk test --help >/dev/null 2>&1); then
+                if topdesk --config "${temp_td_config}" test --help >/dev/null 2>&1; then
                     topdesk_has_test=1
                 fi
 
                 if [ $topdesk_has_doctor -eq 1 ]; then
-                    printf "Running: topdesk doctor (with config)\n"
+                    printf "Running: topdesk --config %s doctor\n" "${temp_td_config}"
                     printf "%s\n" "----------------------------------------"
-                    (. "${temp_td_config}" && topdesk doctor 2>&1) || printf "topdesk doctor failed with exit code: $?\n"
+                    topdesk --config "${temp_td_config}" doctor 2>&1 || printf "topdesk doctor failed with exit code: $?\n"
                     printf "%s\n" "----------------------------------------"
                 fi
 
                 if [ $topdesk_has_config -eq 1 ]; then
-                    printf "\nRunning: topdesk config (with our settings)\n"
+                    printf "\nRunning: topdesk --config %s config\n" "${temp_td_config}"
                     printf "%s\n" "----------------------------------------"
-                    (. "${temp_td_config}" && topdesk config 2>&1) || printf "topdesk config failed with exit code: $?\n"
+                    topdesk --config "${temp_td_config}" config 2>&1 || printf "topdesk config failed with exit code: $?\n"
                     printf "%s\n" "----------------------------------------"
                 fi
 
                 if [ $topdesk_has_test -eq 1 ]; then
-                    printf "\nRunning: topdesk test (with config)\n"
+                    printf "\nRunning: topdesk --config %s test\n" "${temp_td_config}"
                     printf "%s\n" "----------------------------------------"
-                    (. "${temp_td_config}" && topdesk test 2>&1) || printf "topdesk test failed with exit code: $?\n"
+                    topdesk --config "${temp_td_config}" test 2>&1 || printf "topdesk test failed with exit code: $?\n"
                     printf "%s\n" "----------------------------------------"
                 fi
 
                 if [ $topdesk_has_doctor -eq 0 ] && [ $topdesk_has_config -eq 0 ] && [ $topdesk_has_test -eq 0 ]; then
                     printf "No diagnostic commands available for topdesk CLI\n"
-                    printf "Trying: topdesk --version (with config)\n"
+                    printf "Trying: topdesk --config %s --version\n" "${temp_td_config}"
                     printf "%s\n" "----------------------------------------"
-                    (. "${temp_td_config}" && topdesk --version 2>&1) || printf "topdesk version check failed\n"
+                    topdesk --config "${temp_td_config}" --version 2>&1 || printf "topdesk version check failed\n"
                     printf "%s\n" "----------------------------------------"
                 fi
 
                 # Try to show topdesk config list if available (similar to zbx)
                 if command -v topdesk >/dev/null 2>&1; then
                     printf "\n%bTopdesk CLI Configuration:%b\n" "${CYAN}" "${NC}"
-                    if (. "${temp_td_config}" && topdesk config list >/dev/null 2>&1); then
-                        printf "Running: topdesk config list (with our settings)\n"
+                    if topdesk --config "${temp_td_config}" config list >/dev/null 2>&1; then
+                        printf "Running: topdesk --config %s config list\n" "${temp_td_config}"
                         printf "%s\n" "----------------------------------------"
-                        (. "${temp_td_config}" && topdesk config list 2>&1) || printf "topdesk config list failed\n"
+                        topdesk --config "${temp_td_config}" config list 2>&1 || printf "topdesk config list failed\n"
                         printf "%s\n" "----------------------------------------"
                     else
-                        # Fallback: show our configuration manually
+                        # Fallback: show our configuration manually from INI file
                         printf "Showing configuration from temporary config file:\n"
                         printf "%s\n" "----------------------------------------"
-                        printf "TOPDESK_URL=%s\n" "${TOPDESK_URL:-}"
-                        printf "TOPDESK_USER=%s\n" "${TOPDESK_USER:-}"
-                        if [ -n "${TOPDESK_PASSWORD:-}" ]; then
-                            # Mask password like zbx does
-                            local masked_pass=$(printf "%s" "${TOPDESK_PASSWORD}" | sed 's/^\(...\).*/\1***/')
-                            printf "TOPDESK_PASSWORD=%s\n" "${masked_pass}"
-                        else
-                            printf "TOPDESK_PASSWORD=\n"
+                        if [ -f "${temp_td_config}" ]; then
+                            # Display the INI file content with masked password
+                            while IFS= read -r line; do
+                                if echo "$line" | grep -q "^password = "; then
+                                    # Mask the password
+                                    local pass_value=$(echo "$line" | sed 's/^password = //')
+                                    if [ -n "$pass_value" ]; then
+                                        local masked=$(echo "$pass_value" | sed 's/^\(...\).*/\1***/')
+                                        printf "password = %s\n" "$masked"
+                                    else
+                                        printf "password = \n"
+                                    fi
+                                else
+                                    printf "%s\n" "$line"
+                                fi
+                            done < "${temp_td_config}"
                         fi
-                        printf "TOPDESK_API_TOKEN=%s\n" "${TOPDESK_API_TOKEN:-}"
-                        if [ "${VERIFY_SSL:-true}" = "false" ]; then
-                            printf "TOPDESK_VERIFY_SSL=false\n"
-                        else
-                            printf "TOPDESK_VERIFY_SSL=true\n"
-                        fi
-                        printf "TOPDESK_TIMEOUT=%s\n" "${TOPDESK_TIMEOUT:-${CONNECT_TIMEOUT:-30}}"
-                        printf "TOPDESK_CONFIG=%s\n" "${temp_td_config}"
                         printf "%s\n" "----------------------------------------"
                     fi
                 fi
