@@ -1225,7 +1225,7 @@ cmd_validate() {
             chmod +x "${temp_td_config}"
 
             if [ "${DEBUG}" = "1" ]; then
-                printf "\n  Testing with: topdesk test/version\n"
+                printf "\n  Testing with: topdesk ping\n"
                 printf "  URL: %s\n" "${TOPDESK_URL}"
                 if [ -n "${TOPDESK_API_TOKEN:-}" ]; then
                     printf "  Auth: API Token\n"
@@ -1246,15 +1246,6 @@ cmd_validate() {
                 else
                     test_result=$?
                     printf "  topdesk ping failed with exit code: %s\n" "${test_result}"
-                    # Try version as alternate test
-                    printf "  Trying: topdesk version\n"
-                    if topdesk --config "${temp_td_config}" version 2>&1; then
-                        test_result=0
-                        printf "  "
-                    else
-                        test_result=$?
-                        printf "  topdesk version failed with exit code: %s\n" "${test_result}"
-                    fi
                     printf "  "
                 fi
             else
@@ -1262,12 +1253,7 @@ cmd_validate() {
                 if topdesk --config "${temp_td_config}" ping >/dev/null 2>&1; then
                     test_result=0
                 else
-                    # Try version as fallback
-                    if topdesk --config "${temp_td_config}" version >/dev/null 2>&1; then
-                        test_result=0
-                    else
-                        test_result=1
-                    fi
+                    test_result=1
                 fi
             fi
 
