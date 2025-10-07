@@ -2,9 +2,8 @@
 # datafetcher.sh - Data retrieval module for asset-merger-engine
 # Fetches asset information from Zabbix and Topdesk systems
 
-# Source dependencies
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-. "${SCRIPT_DIR}/common.sh" 2>/dev/null || true
+# Source dependencies (use LIB_DIR from parent script)
+. "${LIB_DIR:-$(dirname "$0")}/common.sh" 2>/dev/null || true
 
 # Configuration
 CACHE_DIR="${CACHE_DIR:-/tmp/asset-merger-engine/cache}"
