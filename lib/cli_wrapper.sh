@@ -1,13 +1,12 @@
 #!/bin/sh
 # cli_wrapper.sh - Unified CLI wrapper with fallback/mock support
 
-# Source dependencies
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-. "${SCRIPT_DIR}/common.sh" 2>/dev/null || true
+# Source dependencies (use LIB_DIR from parent script)
+. "${LIB_DIR:-$(dirname "$0")}/common.sh" 2>/dev/null || true
 
 # Configuration
 MOCK_MODE="${MOCK_MODE:-auto}"  # auto, true, false
-MOCK_DATA_DIR="${MOCK_DATA_DIR:-${SCRIPT_DIR}/../test/mock_data}"
+MOCK_DATA_DIR="${MOCK_DATA_DIR:-${PROJECT_ROOT:-..}/test/mock_data}"
 
 # Detect if CLI tools are available
 detect_cli_tools() {
@@ -51,7 +50,7 @@ zbx_execute_wrapper() {
         fi
 
         # Source the actual wrapper
-        . "${SCRIPT_DIR}/zbx_cli_wrapper.sh"
+        . "${LIB_DIR:-$(dirname "$0")}/zbx_cli_wrapper.sh"
         zbx_execute "$command"
     fi
 }
@@ -71,7 +70,7 @@ td_execute_wrapper() {
         fi
 
         # Source the actual wrapper
-        . "${SCRIPT_DIR}/topdesk_cli_wrapper.sh"
+        . "${LIB_DIR:-$(dirname "$0")}/topdesk_cli_wrapper.sh"
         td_execute "$command"
     fi
 }
