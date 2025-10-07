@@ -78,8 +78,8 @@ fetch_zabbix_assets() {
 
     log_info "Fetching assets from Zabbix (group: $group)"
 
-    # Build zbx command for getting hosts in a group
-    local cmd="zbx --format json host list --hostgroup '$group'"
+    # Build zbx call command for getting hosts in a group using JSON-RPC API
+    local cmd="echo '{\"selectGroups\":\"extend\",\"selectInterfaces\":\"extend\",\"selectInventory\":\"extend\",\"filter\":{\"groups\":[\"'\"$group\"'\"]}}' | zbx call host.get"
 
     # Execute with retry logic
     local raw_output
