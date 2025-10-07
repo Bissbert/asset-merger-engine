@@ -87,6 +87,23 @@ fetch_zabbix_assets() {
         return 1
     fi
 
+    # Debug: Log raw output details
+    log_debug "Raw Zabbix output length: ${#raw_output} bytes"
+    if [ -n "${DEBUG}" ]; then
+        # Save raw output to temp file for debugging
+        local debug_file="${CACHE_DIR}/.zbx_raw_output_$$.txt"
+        echo "$raw_output" > "$debug_file"
+        log_debug "Saved raw zbx output to: $debug_file"
+
+        # Show first 500 chars with control characters visible
+        log_debug "First 500 chars of raw output:"
+        echo "$raw_output" | head -c 500 | cat -v >&2
+    fi
+
+    # Strip ANSI color codes and control characters from zbx output
+    raw_output=$(echo "$raw_output" | sed $'s/\x1b\[[0-9;]*m//g')
+    log_debug "Stripped ANSI codes, new length: ${#raw_output} bytes"
+
     # Parse and normalize Zabbix output
     local normalized_output
     normalized_output=$(echo "$raw_output" | normalize_zabbix_data)
@@ -175,11 +192,16 @@ try:
     print(json.dumps(result, indent=2))
 
 except json.JSONDecodeError as e:
+    import sys
+    # Print raw data sample to stderr for debugging
+    print(f"[ERROR] JSON Parse Error at line {e.lineno}, column {e.colno}", file=sys.stderr)
+    print(f"[ERROR] First 1000 chars of raw input:", file=sys.stderr)
+    print(raw_data[:1000], file=sys.stderr)
     print(json.dumps({
         "source": "zabbix",
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "assets": [],
-        "error": f"Failed to parse JSON: {str(e)}"
+        "error": f"Failed to parse JSON at line {e.lineno}, col {e.colno}: {str(e)}"
     }))
 except Exception as e:
     print(json.dumps({
