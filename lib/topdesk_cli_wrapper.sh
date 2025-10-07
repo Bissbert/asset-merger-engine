@@ -1,10 +1,9 @@
 #!/bin/sh
 # topdesk_cli_wrapper.sh - Topdesk CLI wrapper with enhanced functionality
 
-# Source common utilities
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-. "${SCRIPT_DIR}/common.sh"
-. "${SCRIPT_DIR}/auth_manager.sh" 2>/dev/null || true
+# Source common utilities (use LIB_DIR from parent script)
+. "${LIB_DIR:-$(dirname "$0")}/common.sh"
+. "${LIB_DIR:-$(dirname "$0")}/auth_manager.sh" 2>/dev/null || true
 
 # Topdesk-specific configuration
 TD_TIMEOUT="${TD_TIMEOUT:-30}"
