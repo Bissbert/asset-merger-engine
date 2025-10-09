@@ -92,12 +92,12 @@ fetch_zabbix_assets() {
     if [ -n "${DEBUG}" ]; then
         # Save raw output to temp file for debugging
         local debug_file="${CACHE_DIR}/.zbx_raw_output_$$.txt"
-        echo "$raw_output" > "$debug_file"
+        printf '%s' "$raw_output" > "$debug_file"
         log_debug "Saved raw zbx output to: $debug_file"
 
         # Show first 500 chars with control characters visible
         log_debug "First 500 chars of raw output:"
-        echo "$raw_output" | head -c 500 | cat -v >&2
+        printf '%s' "$raw_output" | head -c 500 | cat -v >&2
     fi
 
     # Strip ANSI color codes and control characters from zbx output
@@ -106,7 +106,7 @@ fetch_zabbix_assets() {
 
     # Parse and normalize Zabbix output
     local normalized_output
-    normalized_output=$(echo "$raw_output" | normalize_zabbix_data)
+    normalized_output=$(printf '%s' "$raw_output" | normalize_zabbix_data)
 
     if [ -z "$normalized_output" ] || [ "$normalized_output" = "[]" ]; then
         log_warning "No assets found in Zabbix group: $group"
@@ -115,7 +115,7 @@ fetch_zabbix_assets() {
     fi
 
     # Cache the result
-    echo "$normalized_output" > "$cache_file"
+    printf '%s\n' "$normalized_output" > "$cache_file"
     log_debug "Cached Zabbix data to $cache_file"
 
     echo "$normalized_output"
