@@ -100,9 +100,15 @@ fetch_zabbix_assets() {
         printf '%s' "$raw_output" | head -c 500 | cat -v >&2
     fi
 
-    # Strip ANSI color codes and control characters from zbx output
-    raw_output=$(echo "$raw_output" | sed $'s/\x1b\[[0-9;]*m//g')
-    log_debug "Stripped ANSI codes, new length: ${#raw_output} bytes"
+    # Strip ANSI color codes and carriage returns from zbx output
+    raw_output=$(echo "$raw_output" | sed $'s/\x1b\[[0-9;]*m//g' | tr -d '\r')
+    log_debug "Stripped ANSI codes and carriage returns, new length: ${#raw_output} bytes"
+
+    # Debug: Check for remaining control characters
+    if [ -n "${DEBUG}" ]; then
+        local lf_count=$(printf '%s' "$raw_output" | grep -o $'\n' | wc -l | tr -d ' ')
+        log_debug "Line endings: LF (\\n) count=$lf_count"
+    fi
 
     # Parse and normalize Zabbix output
     local normalized_output
@@ -210,7 +216,7 @@ except Exception as e:
         "assets": [],
         "error": str(e)
     }))
-' 2>/dev/null || echo '{"source":"zabbix","timestamp":"'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'","assets":[],"error":"Python parsing failed"}'
+' 2>&1 || echo '{"source":"zabbix","timestamp":"'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'","assets":[],"error":"Python parsing failed"}'
 }
 
 # Fetch data from Topdesk
